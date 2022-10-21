@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Dec 26 00:07:04 2021
+
+@author: DarkLegacy
+"""
+
 from tkinter import ttk
 import tkinter as tk
 from babel.numbers import format_currency
@@ -17,16 +24,26 @@ from math import ceil
 from num2words import num2words
 from math import floor
 
+####################################################################################################################################################
+
 data = pd.read_excel('./Data/data.xlsx')
 data = data.replace(float('nan'),"")
 
+####################################################################################################################################################
+
 root = tk.Tk()
+# app_width = 305
+# app_height = 180
+# root.geometry("800x500")
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
 x = (screen_width-(screen_width/2.5))/2
 y = (screen_height-(screen_height/2.5))/2
 root.geometry('+%d+%d'%(x,y))
+# root.resizable(False, False)
 root.title('Window Quotation')
+
+####################################################################################################################################################
 
 window_options = ["Sliding Window", "Sliding Door", "Fix Louver", "Patti Louver", "Openable Window", "Sliding folding door", "Casement Window", "Aluminium partition", "Toughened partition", "Toughened Door", "Composite pannel", "Curtain wall", "Fix Window", "Exhaust Fan Window"]
 
@@ -49,6 +66,8 @@ masktape_options = ["Red", "Green"]
 acpsheet_options = ["Black", "White", "Ivory"]
 Louver_blade = ' '.join(map(str,list(range(3,13)))).split()
 
+####################################################################################################################################################
+
 options = dict()
 options["track_options"] = track_options
 options["aluminium_material"] = aluminium_material
@@ -70,6 +89,7 @@ options["masktape_options"] = masktape_options
 options["acpsheet_options"] = acpsheet_options
 options["Louver_blade"] = Louver_blade
 
+####################################################################################################################################################
 
 Width = tk.StringVar()
 Height = tk.StringVar()
@@ -124,6 +144,7 @@ quotationNumber = ""
 calculateFlag = False
 calcQuantFlag = False
 discFlag = False
+# s = tk.IntVar()
 
 digVerify = "1234567890.,"
 pressedCalcFlag = False
@@ -131,9 +152,13 @@ pressedCalcFlag = False
 dataDict = dict()
 srno = data.shape[0]
 num = list(data["Sr.No"])
+# if(len(num)!=0):
+#     srno = num[-1]
 
 if(data.shape[0]==0):
     srno=1
+
+####################################################################################################################################################
 
 totSQFt = 0
 new = None
@@ -142,6 +167,8 @@ new = None
 
 #***************************************************************************************************************************************************#
 
+# data = pd.read_excel('./data/RAVI SIR_QuatationData.xlsx')
+# data = data.replace(float('nan'),"")
 
 ####################################################################################################################################################
 
@@ -152,10 +179,16 @@ def setCustomerName(cust):
 ####################################################################################################################################################
 
 
+# data = pd.read_excel('./data/_QuatationData.xlsx')
+# data = data.replace(float('nan'),"")
+
+# data = None
 custName = None
+# Returns the current local date
 today = date.today()
 totSrno = len(list(data["Sr.No"]))
 printCount = 0
+
 ratio = dict()
 
 
@@ -275,10 +308,13 @@ class PDF(FPDF):
         
         self.set_draw_color(0,0,0)
         self.line(design+5, textLevel+5.55, design+5, textLevel+4.7+ratio[key][1])
+        # self.line(design+60, textLevel+5.5, design+60, textLevel+4.7+ratio[key][1])
         
         if(ratio[key][0]<50):
+            # self.line(design+12.8, textLevel+0.5, design+12.8+ratio[key][0], textLevel+0.5)
             self.line(design+12.8, textLevel+9.5+ratio[key][1], design+ratio[key][0]+12.5, textLevel+9.5+ratio[key][1])
         else:
+            # self.line(design+7.8, textLevel+0.5, design+ratio[key][0]+7.5, textLevel+0.5)
             self.line(design+7.8, textLevel+9.5+ratio[key][1], design+ratio[key][0]+7.5, textLevel+9.5+ratio[key][1])
         
         self.set_draw_color(169,169,169)
@@ -300,6 +336,8 @@ class PDF(FPDF):
         strWidth = self.get_string_width(data["Width"][x])
         strHeight = self.get_string_width(data["Height"][x])
         
+        
+        
         self.set_y(textLevel+8.2+ratio[key][1])
         self.set_x(design+(60-strWidth)/2)
         self.set_font('helvetica', '', 6)
@@ -312,6 +350,12 @@ class PDF(FPDF):
         self.set_fill_color(256,256,256)
         self.cell(w=strHeight+4, h=5, txt="{}".format(data["Height"][x]), align='C', fill=True)
         
+        # self.set_y(textLevel-0.5)
+        # self.set_x(design+(60-strWidth)/2)
+        # self.set_font('helvetica', '', 6)
+        # self.set_fill_color(256,256,256)
+        # self.cell(w=strWidth+4, txt="{}".format(data["Width"][x]), align='C', fill=True)
+        
         
     def printInPDF(self, textLevel, design, specs, cost, quantity, amount, x):
         
@@ -322,8 +366,9 @@ class PDF(FPDF):
         self.set_x(15)
         self.set_font('helvetica', '', 6)
         self.cell(w=12,txt="{}".format(x+1), align='C')
-        self.insertImage(x,design,textLevel)
         
+        self.insertImage(x,design,textLevel)
+        # self.image('./Images/{}.png'.format(data["windowTypeVar"][x]), x=design + 7.5, y=textLevel+5, w = ratio[key][1], h=ratio[key][0])
         if(ratio[key][0]<50):
             self.set_y(textLevel+65)
         else:
@@ -354,6 +399,7 @@ class PDF(FPDF):
         self.set_y(textLevel)
         self.set_x(specs)
         self.set_font('helvetica', '', 6)
+        # width = self.get_string_width(varName[i])
         self.cell(w=10,txt="Area: {} Sq.Ft.".format(data["totSqftEntVar"][x]))
         textLevel = textLevel + 4
         self.set_y(textLevel)
@@ -474,6 +520,12 @@ class PDF(FPDF):
         self.set_x(15)
         self.set_font('helvetica', 'B', 8)
         self.multi_cell(w=60, h=3.5,txt="{}".format(data["address"][0]))
+        # self.multi_cell(w=60, h=5,txt="asdfad sfadfa")
+        
+        # self.set_y(self.get_y()+2.5)
+        # self.set_x(15)
+        # self.set_font('helvetica', 'B', 8)
+        # self.cell(w=0,txt="{}".format(data["custConVar"][0]))
 
         self.ln(h=7)
         titleLevelY = self.get_y()
@@ -484,6 +536,7 @@ class PDF(FPDF):
         self.set_font('helvetica', 'B', 8)
         self.set_fill_color(229,233,243)
         self.cell(w=12, h=10, txt="Sr.No", fill=True, border=True, align='C')
+        # self.line(titleLevelX, titleLevelY, titleLevelX, 280)
 
         titleLevelX = titleLevelX + 12
 
@@ -492,6 +545,7 @@ class PDF(FPDF):
         self.set_font('helvetica', 'B', 8)
         self.set_fill_color(229,233,243)
         self.cell(w=65, h=10, txt="DESIGN", fill=True, border=True, align='C')
+        # self.line(titleLevelX, titleLevelY, titleLevelX, 280)
 
         design = titleLevelX
         titleLevelX = titleLevelX + 65
@@ -501,6 +555,7 @@ class PDF(FPDF):
         self.set_font('helvetica', 'B', 8)
         self.set_fill_color(229,233,243)
         self.cell(w=45, h=10, txt="SPECIFICATIONS", fill=True, border=True, align='C')
+        # self.line(titleLevelX, titleLevelY, titleLevelX, 280)
 
         specs = titleLevelX
         titleLevelX = titleLevelX + 45
@@ -510,6 +565,7 @@ class PDF(FPDF):
         self.set_font('helvetica', 'B', 8)
         self.set_fill_color(229,233,243)
         self.cell(w=20, h=10, txt="COST(Rs.)", fill=True, border=True, align='C')
+        # self.line(titleLevelX, titleLevelY, titleLevelX, 280)
 
         cost = titleLevelX
         titleLevelX = titleLevelX + 20
@@ -519,6 +575,7 @@ class PDF(FPDF):
         self.set_font('helvetica', 'B', 8)
         self.set_fill_color(229,233,243)
         self.cell(w=10, h=10, txt="QTY", fill=True, border=True, align='C')
+        # self.line(titleLevelX, titleLevelY, titleLevelX, 280)
 
         quantity = titleLevelX
         titleLevelX = titleLevelX + 10
@@ -528,13 +585,16 @@ class PDF(FPDF):
         self.set_font('helvetica', 'B', 8)
         self.set_fill_color(229,233,243)
         self.cell(w=28, h=10, txt="AMOUNT(Rs.)", fill=True, border=True, align='C')
+        # self.line(titleLevelX, titleLevelY, titleLevelX, 280)
 
         amount = titleLevelX
 
         noOfDiv = (280 - titleLevelY)/2
+        # self.line(15, titleLevelY + noOfDiv, 195, titleLevelY + noOfDiv)
+
         textLevel = titleLevelY + 15
         
-        for i in range(2):
+        for i in range(2):#len(list(data["Sr.No"]))):
             if(printCount<data[data.columns[0]].count()):
                 self.drawLinesHome(titleLevelY,noOfDiv)
                 
@@ -544,6 +604,10 @@ class PDF(FPDF):
                 titleLevelY = textLevel - 15
             
         totalLevel = self.get_y()
+        # self.line(15, 280, 195, 280)
+        # self.line(195, titleLevelY, 195, 280)
+        
+    
         
     def newPage(self):
         global printCount, totSrno, totalLevel
@@ -605,25 +669,34 @@ class PDF(FPDF):
         
         amount = titleLevelX
         titleLevelX = titleLevelX + 28
+        
+        # noOfDiv = (267 - 10)/3
+        # self.line(15, titleLevelY + 67.5, 195, titleLevelY + 67.5)
+        # self.line(15, titleLevelY + noOfDiv + noOfDiv + 10, 195, titleLevelY + noOfDiv + noOfDiv + 10)
+        
         titleLevelY = titleLevelY
         
         for i in range(3):
             if(printCount<data[data.columns[0]].count()):
                 if(i==0):
+                    # printCount+=1
                     self.drawLines(titleLevelY+6)
                     self.printInPDF(titleLevelY + 15, design, specs, cost, quantity, amount, printCount)
                     printCount+=1
                     titleLevelY = titleLevelY+88
                 elif(i==1):
+                    # printCount+=1
                     self.drawLines(titleLevelY+2.5)
                     self.printInPDF(titleLevelY + 15, design, specs, cost, quantity, amount, printCount)
                     printCount+=1
                     titleLevelY = titleLevelY+88
                 else:
+                    # printCount+=1
                     self.drawLines(titleLevelY)
                     self.printInPDF(titleLevelY + 15, design, specs, cost, quantity, amount, printCount)
                     printCount+=1
                     titleLevelY = titleLevelY+88
+
         
         totalLevel = self.get_y()
 
@@ -644,8 +717,21 @@ class PDF(FPDF):
         postTax = 0
         inst = 0
         
+        # totalLevel = totalLevel + 78
+        
+        # if(totalLevel <= 80):
+        #     totalLevel = totalLevel + 10
+        # elif(totalLevel <= 100):
+        #     totalLevel = totalLevel + 10
+        # elif(totalLevel <= 190):
+        #     totalLevel = totalLevel + 10
+        # elif(totalLevel > 230):
+        #     self.add_page()
+        #     totalLevel = 15
+        
         wi = self.get_string_width("Total Area: ")
         self.set_y(totalLevel)
+        # self.set_x(100)
         self.set_font('helvetica', 'B', 7)
         self.set_fill_color(229,233,243)
         self.cell(w=wi + 2, h=6, txt="Total Area: ", align='L')
@@ -675,6 +761,7 @@ class PDF(FPDF):
             
         wi = self.get_string_width("Total Windows: ")
         self.set_y(totalLevel)
+        # self.set_x(100)
         self.set_font('helvetica', 'B', 7)
         self.set_fill_color(229,233,243)
         self.cell(w=wi, h=6, txt="Total Windows: ", align='L')
@@ -961,6 +1048,7 @@ class PDF(FPDF):
         
     def driverCode(self):
         global printCount
+        # pdf = PDF('P', 'mm', 'A4')
         
         printCount = 0
         self.alias_nb_pages()
@@ -971,6 +1059,7 @@ class PDF(FPDF):
         self.set_y(15)
         self.homePage()
 
+
         for i in range(ceil((data.shape[0]-2)/3)):
             self.add_page()
             self.newPage()
@@ -978,7 +1067,9 @@ class PDF(FPDF):
         self.add_page()
         self.totalDisplay()
         self.pdfEnd()
-        self.output(self.fileName)
+
+        self.output(self.fileName)#'./Data/{} Quotation.pdf'.format(data["custNamVar"][0]))
+        # self.output('./Output/{} Quotation.pdf'.format(data["custNamVar"][0]))
         self.printDoneFlag = True
 
 #***************************************************************************************************************************************************#
@@ -1014,8 +1105,8 @@ def checkDigits():
 def clearValues():
     global quantity
     
-    # Width.set("")
-    # Height.set("")
+    Width.set("")
+    Height.set("")
     # windowTypeVar.set("")
     trackVar.set("")
     aluMatVar.set("")
@@ -1042,14 +1133,14 @@ def clearValues():
     compSheVar.set("")
     maskTapVar.set("")
     acpSheVar.set("")
-    # totSqftEntVar.set("")
-    # cstAmtInr.set("")
-    # costEntVar.set("")
-    # discountEntVar.set("")
-    # gstEntVar.set("")
-    # costTotVar.set("")
-    # discTotVar.set("")
-    # gstTotVar.set("")
+    totSqftEntVar.set("")
+    cstAmtInr.set("")
+    costEntVar.set("")
+    discountEntVar.set("")
+    gstEntVar.set("")
+    costTotVar.set("")
+    discTotVar.set("")
+    gstTotVar.set("")
     quantity = 1
 
 def addNewRowData(obj,objStr):
@@ -1137,13 +1228,17 @@ def toExcel():
     obj = Cart()
     new.destroy()
     obj.addMorePage()
+    # clearValues()
 
 def afterCalculate():
     global srno, windowTypeVar,	trackVar, aluMatVar, glaThicVar, glaTypVar, hardLocVar, hardBeaVar, rubbTypVar, rubbThicVar, woolFileVar, aluNetVar,	fraColVar, silColVar, screwVar1, screwVar2, screwVar3, screwVar4, screwVar5, screwVar6, lowBladVar, handleVar, acrSheVar, hardwaVar, compSheVar, 	maskTapVar, acpSheVar, totSqftEntVar, costEntVar, profitEntVar, discountEntVar, labourEntVar, gstEntVar, costTotVar, profTotVar, discTotVar, laboTotVar	, gstTotVar, custNamVar, custAddVar, custConVar, address
     
+    # data['totSqftEntVar'] = addNewRowData(totSqftEntVar, "totSqftEntVar")
+    # data['costEntVar'] = addNewRowData(costEntVar, "costEntVar")
     data['discountEntVar'] = addNewRowData(discountEntVar, "discountEntVar")
     data['instEntVar'] = addNewRowData(instEntVar, "instEntVar")
     data['gstEntVar'] = addNewRowData(gstEntVar, "gstEntVar")
+    
     data['costTotVar'] = addNewRowData(costTotVar, "costTotVar")
     data['discTotVar'] = addNewRowData(discTotVar, "discTotVar")
     data['instTotVar'] = addNewRowData(instTotVar, "instTotVar")
@@ -1151,10 +1246,144 @@ def afterCalculate():
     
     data.to_excel('./Data/{}_QuatationData.xlsx'.format(custNamVar.get()), index=False)
 
+####################################################################################################################################################
 
-#***********************-----------------------------**************************----------------------------**********************------------------
+def selector():
+    global totSQFt,address,new
+    
+    contact = custConVar.get() 
+    
+    if(contact.isdigit() and len(contact)>7 and len(contact)<=10 ):
+        pass
+    else:
+        messagebox.showerror("Invalid","Please enter a valid Contact Number")
+        return False
 
+    if(Width.get()=="" or Height.get()==""):
+        messagebox.showerror("Invalid","Please enter Width and Height")
+        return False
+    
+    address = custAddEnt.get("1.0","end-1c")
+    
+    new = tk.Toplevel()
+    new.attributes('-topmost',True)
+    app_width = 0
+    app_height = 430
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    x = (screen_width/2) - (app_width/2) - 500
+    y = (screen_height/2) - (app_height/2) - 200
+    new.geometry('+%d+%d'%(x,y))
+    
+    totSQFt = float(Width.get()) * float(Height.get())
+    totSQFt = round(totSQFt,2)    
+    
+    if(selectWinDrop.get() == "Sliding Window"):
+        new.title('Sliding Window')
+        obj = SlidingWindow(new)
+        obj.frameCreate()
+        obj.variableTitles()
+        obj.variables()
+    
+    elif(selectWinDrop.get() == "Sliding Door"):
+        new.title("Sliding Door")
+        obj = SlidingDoor(new)
+        obj.frameCreate()
+        obj.variableTitles()
+        obj.variables()
+    
+    elif(selectWinDrop.get() == "Fix Louver"):
+        # clearValues()
+        new.title("Fix Louver")
+        obj = FixLouver(new)
+        obj.frameCreate()
+        obj.variableTitles()
+        obj.variables()
+    
+    elif(selectWinDrop.get() == "Patti Louver"):
+        # clearValues()
+        new.title("Patti Louver")
+        obj = PattiLouver(new)
+        obj.frameCreate()
+        obj.variableTitles()
+        obj.variables()
+    
+    elif(selectWinDrop.get() == "Openable Window"):
+        new.title("Openable Window")
+        obj = OpenableWindow(new)
+        obj.frameCreate()
+        obj.variableTitles()
+        obj.variables()
+    
+    elif(selectWinDrop.get() == "Sliding folding door"):
+        new.title("Sliding folding door")
+        obj = SlidingFoldingDoor(new)
+        obj.frameCreate()
+        obj.variableTitles()
+        obj.variables()
+    
+    elif(selectWinDrop.get() == "Casement Window"):
+        new.title("Casement Window")
+        obj = CasementWindow(new)
+        obj.frameCreate()
+        obj.variableTitles()
+        obj.variables()
+    
+    elif(selectWinDrop.get() == "Aluminium partition"):
+        new.title("Aluminium partition")
+        obj = AluminiumPartition(new)
+        obj.frameCreate()
+        obj.variableTitles()
+        obj.variables()
+    
+    elif(selectWinDrop.get() == "Toughened partition"):
+        new.title("Toughened partition")
+        obj = ToughenedPartition(new)
+        obj.frameCreate()
+        obj.variableTitles()
+        obj.variables()
+    
+    elif(selectWinDrop.get() == "Toughened Door"):
+        new.title("Toughened Door")
+        obj = ToughenedDoor(new)
+        obj.frameCreate()
+        obj.variableTitles()
+        obj.variables()
+    
+    elif(selectWinDrop.get() == "Composite pannel"):
+        new.title("Composite pannel")
+        obj = CompositePanel(new)
+        obj.frameCreate()
+        obj.variableTitles()
+        obj.variables()
+    
+    elif(selectWinDrop.get() == "Curtain wall"):
+        new.title("Curtain wall")
+        obj = CurtainWall(new)
+        obj.frameCreate()
+        obj.variableTitles()
+        obj.variables()
+    
+    elif(selectWinDrop.get() == "Fix Window"):
+        new.title("Fix Window")
+        obj = FixWindow(new)
+        obj.frameCreate()
+        obj.variableTitles()
+        obj.variables()
+        
+    elif(selectWinDrop.get() == "Exhaust Fan Window"):
+        new.title("Exhaust Fan Window")
+        obj = ExhaustFanWindow(new)
+        obj.frameCreate()
+        obj.variableTitles()
+        obj.variables()
+
+####################################################################################################################################################
+
+#***********************-----------------------------**************************-----------------------------**********************------------------
+# data = None
 custName = None
+# Returns the current local date
 today = date.today()
 printCount = 0
 taxPrintCount = 0
@@ -1192,6 +1421,10 @@ class PDFInvoice(FPDF):
         
         self.line(105, 20, 105, 65)
         self.line(15, 65, 195, 65)
+        # self.line(105, 70, 195, 70)
+        
+        #------------------------------------------------------------------
+
         self.line(15, 80, 195, 80)
         self.line(15, 95, 195, 95)
         
@@ -1218,6 +1451,7 @@ class PDFInvoice(FPDF):
         self.line(90, startTaxLevel+8, 90, taxLevel+7)
         self.line(140, startTaxLevel+8, 140, taxLevel+7)
         self.line(15, startTaxLevel+16, 195, startTaxLevel + 16)
+        # self.line(167.5, 96, 167.5, taxLevel)
         
 
     def printTaxInfo(self, taxLevel, x, taxSum):
@@ -1307,6 +1541,7 @@ class PDFInvoice(FPDF):
         self.set_font('helvetica', '', 7)
         self.cell(w=77,txt="{}".format(desc1), align="L")
         
+
         self.set_y(printLevel)
         self.set_x(88)
         self.set_font('helvetica', '', 8)
@@ -1420,6 +1655,8 @@ class PDFInvoice(FPDF):
         self.set_font('helvetica', 'I', 8)
         self.cell(w=0,txt="CURPB8193C")
         
+        #------------------------------------------------------------------------------------------------------------------------------------
+        
         self.set_y(23)
         self.set_x(107)
         self.set_font('helvetica', 'B', 10)
@@ -1434,6 +1671,7 @@ class PDFInvoice(FPDF):
         self.set_x(107)
         self.set_font('helvetica', '', 8)
         self.multi_cell(w=70, h=4,txt="{}".format(data["address"][0]))
+        # self.multi_cell(w=60, h=5,txt="asdfad sfadfa")
 
         self.set_y(self.get_y())
         self.set_x(107)
@@ -1472,6 +1710,11 @@ class PDFInvoice(FPDF):
         self.set_font('helvetica', 'I', 8)
         self.cell(w=0,txt="{}".format(data["custPanNumb"][0]))
         
+        
+        # self.buyerY = self.get_y() + 5
+    
+        #------------------------------------------------------------------------------------------------------------------------------------
+        
         self.set_y(67)
         self.set_x(17)
         self.set_font('helvetica', 'B', 10)
@@ -1502,6 +1745,8 @@ class PDFInvoice(FPDF):
         self.set_font('helvetica', '', 8)
         self.cell(w=0,txt="{}/{}/{}".format(today.day,today.month,today.year))
     
+        #------------------------------------------------------------------------------------------------------------------------------------
+        
         self.set_y(82)
         self.set_x(17)
         self.set_font('helvetica', 'B', 10)
@@ -1579,9 +1824,15 @@ class PDFInvoice(FPDF):
         
         global printCount, taxLevel
         
+
+        # printLevel = self.get_y() + 9
         printLevel = 108
+        # print(printLevel)
+        
         self.infosectionTitle()
+        
         nop = ceil(data.shape[0]/15)
+        
         flag = False
         
         for i in range(data.shape[0]):
@@ -1749,12 +2000,19 @@ class PDFInvoice(FPDF):
         self.cell(w=22,txt="E. & O.E", align='L')
         
         self.drawLinesInfo(printLevel)
+        # print(printLevel)
+        # taxLevel = printLevel + 18
+        
+        
         self.line(15, printLevel, 195, printLevel)
         self.line(15, printLevel + 23, 195, printLevel + 23)
           
     def taxableAmountTitle(self):
-        
         taxLevel = 97
+        
+        # indCurr = lambda x : format_currency(x, 'INR', locale='en_IN').replace(u'\xa0', u' ')
+        # startTaxLevel = taxLevel - 2
+        
         self.set_y(taxLevel+2)
         self.set_x(15)
         self.set_font('helvetica', 'B', 10)
@@ -1810,10 +2068,19 @@ class PDFInvoice(FPDF):
         global taxLevel, taxPrintCount, endPrintLevel, amtsum
         
         taxLevel = 97
+        
         indCurr = lambda x : format_currency(x, 'INR', locale='en_IN').replace(u'\xa0', u' ')
         startTaxLevel = taxLevel - 2
+        
         taxLevel = taxLevel + 15
+        
         taxSum = 0
+        
+        # for i in range(data.shape[0]):
+        #     taxPrintCount+=1
+        #     taxSum = self.printTaxInfo(taxLevel, i, taxSum)
+        #     taxLevel = taxLevel + 7
+            
         nop = ceil(data.shape[0]/18)
         
         self.taxableAmountTitle() 
@@ -1828,6 +2095,8 @@ class PDFInvoice(FPDF):
         if(taxLevel<=240 and taxLevel>220):
             self.line(15, taxLevel, 195, taxLevel)
             self.drawLinesTax(startTaxLevel, taxLevel-7)
+        
+        # self.drawLinesTax(startTaxLevel, taxLevel-7)
         
         for j in range(nop-1):
             
@@ -1903,6 +2172,8 @@ class PDFInvoice(FPDF):
         
         endPrintLevel = taxLevel
         
+        # self.drawLinesTax(startTaxLevel, taxLevel)
+        
     def endPrint(self):
         global endPrintLevel
         
@@ -1910,6 +2181,8 @@ class PDFInvoice(FPDF):
         bank = "Punjab National Bank"
         account = "0650050015525"
         ifsc = "PUNB0065020"
+        
+        # print(endPrintLevel)
         
         if(endPrintLevel>200):
             self.add_page()
@@ -2020,7 +2293,7 @@ class PDFInvoice(FPDF):
         self.output(self.fileName)
         self.printDoneFlag = True
 
-#***********************-----------------------------**************************----------------------------**********************------------------
+#***********************-----------------------------**************************-----------------------------**********************------------------
 
 class Invoice:
     
@@ -2093,16 +2366,24 @@ class Invoice:
         pdfInv = PDFInvoice('P', 'mm', 'A4')
         
         pdfInv.fileName = file.name
+        # pb.start()
+        # pb.configure(takefocus=1)
         prog.attributes('-topmost',True)
         pdfInv.invoiceDriverCode()
+        # pb.start()
         print("Finished")
         
         if(pdfInv.printDoneFlag==True):
+            # pb.stop()
             prog.destroy()
             self.new.attributes('-topmost',True)
     
     def invWindow(self):
         global data
+        # data = pd.read_excel('./data/Somesh Bagadiya_QuatationData.xlsx')
+        # data = data.replace(float('nan'),"")
+        # self.data = data
+        
         new = tk.Toplevel()
         new.attributes('-topmost',True)
         screen_width = root.winfo_screenwidth()
@@ -2111,6 +2392,7 @@ class Invoice:
         y = ((screen_height/1.5))/2 - 240
         new.geometry('+%d+%d'%(x,y))
         new.title('Invoice')
+        # new.grab_set()
         self.new = new
         
         custDetails = ttk.Label(self.new, text="Customer Details", font=("",10,"bold"))
@@ -2118,6 +2400,7 @@ class Invoice:
         
         frame2 = tk.LabelFrame(self.new, borderwidth=2, width=1000, labelwidget=custDetails )
         frame2.grid(column=0, row=0, columnspan=3, padx=5, pady=5, sticky='W')
+        # frame2.grid_propagate(0)
         self.frame2 = frame2
         
         custNamVar.set(data.iloc[0]["custNamVar"])
@@ -2147,6 +2430,7 @@ class Invoice:
         custConEnt.grid(column=1,row=4, padx=10, pady=10, sticky='W')
         custConEnt = tk.Entry(self.frame2, textvariable=self.custPanVar, font=("",9,""), relief="solid", width = 43)
         custConEnt.grid(column=1,row=5, padx=10, pady=10, sticky='W')
+        
         
         frame_canvas = tk.Frame(self.new, borderwidth=2)
         frame_canvas.grid(row=2, column=0, columnspan=3, pady=(5, 0), sticky='nw')
@@ -2212,6 +2496,8 @@ class Invoice:
             head3 = tk.Entry(frame_buttons, text=data["hsnSacVar"][x], textvariable=self.finAmt[i], relief="solid",  width = 13)
             head3.grid(column=2, row=i+2, padx=10, pady=10, sticky='W')
             
+            # data["HSN/SAC"][x] = self.finAmt[i].get()
+            # print(data["HSN/SAC"][x])
             rate = data["cstAmtInr"][x]
             head4 = tk.Label(frame_buttons, text=rate, padx=10)
             head4.grid(column=3, row=i+2, padx=10, pady=10, sticky='W')
@@ -2233,6 +2519,7 @@ class Invoice:
         cost = ttk.Label(frame_buttons, text="Total Cost")
         cost.grid(column=0, row=i+5, padx=10, pady=10, sticky='W')
         
+        # indCurr = lambda x : format_currency(x, 'INR', locale='en_IN').replace(u'\xa0', u' ')
         finAmt = tk.StringVar()
         finAmt.set(indCurr(data.iloc[i]["finalCost"]))
         
@@ -2245,12 +2532,17 @@ class Invoice:
         qtyCostTot = tk.Entry(frame_buttons, textvariable=qtyAmt, relief="solid", width = 14, state='disabled')
         qtyCostTot.grid(column=5,row=i+5, padx=10, pady=10, sticky='W')
  
+        # Update buttons frames idle tasks to let tkinter calculate buttons sizes
         frame_buttons.update_idletasks()
         frame_canvas.config(width=810, height=400)
  
-        canvas.config(scrollregion=canvas.bbox("all"))       
+        # Set the canvas scrolling region
+        canvas.config(scrollregion=canvas.bbox("all"))
+        
         invDetails = ttk.Label(self.new, text="Invoice Details", font=("",10,"bold"))
         invDetails.grid(column=0, row=0, padx=10, pady=10, sticky='W')
+        
+        #--------------------------------------------------------------------------------------------------------------------
         
         frame3 = tk.LabelFrame(self.new, borderwidth=2, labelwidget=invDetails)
         frame3.grid(column=0, row=3, columnspan=10, padx=5, pady=5, sticky='W')
@@ -2321,6 +2613,7 @@ class CalculatePage:
             return False
         
         self.new.attributes('-topmost',False)
+        # self.new.grab_release()
         
         data["quotaionNumber"] = quotationNumber
         
@@ -2332,20 +2625,29 @@ class CalculatePage:
         y = ((screen_height/1.5))/2 + 100
         prog.geometry('+%d+%d'%(x,y))
         prog.title('Wait')
+        # prog.grab_set()
         
         labour = ttk.Label(prog, text="PDF is generating might take a minute or two. This window would close automatically once done.", font=("",10,"bold") )
         labour.grid(column=0, row=3, padx=20, pady=20, sticky='W')
+        # pb = ttk.Progressbar(prog, orient='horizontal', mode='indeterminate', length=100, takefocus=1)
+        # pb.grid(column=0, row=0, columnspan=2, padx=10, pady=20)
+        # pb.start()
         files = [('PDF Files', '*.pdf'), ('All Files', '*.*')]
         file = asksaveasfile(filetypes = files, defaultextension = files)
         setCustomerName(custNamVar.get())
         pobj = PDF('P', 'mm', 'A4')
+        # pdf.data = data
         pobj.fileName = file.name
+        # pb.start()
+        # pb.configure(takefocus=1)
         prog.attributes('-topmost',True)
         pobj.driverCode()
+        # pb.start()
          
         print("Finished")
         
         if(pobj.printDoneFlag==True):
+            # pb.stop()
             prog.destroy()
             self.new.attributes('-topmost',True)
 
@@ -2393,6 +2695,7 @@ class CalculatePage:
                 data["discountFlag"][0] = "True Flag"
                 discountedCost = totalcost - float(discountEntVar.get())
                 gstCost = discountedCost + (discountedCost*18/100)
+                
                 discTotVar.set(indCurr(discountedCost))
                 gstTotVar.set(indCurr(gstCost))
             else:
@@ -2403,13 +2706,18 @@ class CalculatePage:
                 data["installationFlag"][0] = "True Flag"
                 gstCost = totalcost + (totalcost*18/100)
                 installationCost = gstCost + float(instEntVar.get())
+                
+                
                 instTotVar.set(indCurr(installationCost))
                 gstTotVar.set(indCurr(gstCost))
             else:
                 instTotVar.set("")
                 data["installationFlag"][0] = "False Flag"
             
+        
+            
         print(totalcost, discountedCost, installationCost)
+            
         afterCalculate()
     
     def callInvoice(self):
@@ -2423,6 +2731,7 @@ class CalculatePage:
         self.new.destroy()
         obj = Invoice()
         obj.invWindow()
+            
     
     def costPage(self):
         
@@ -2434,6 +2743,7 @@ class CalculatePage:
         y = ((screen_height/1.5))/2
         new.geometry('+%d+%d'%(x,y))
         new.title('Calculation')
+        # new.grab_set()
         self.new = new
         
         totSqftEntVar.set(totSQFt)
@@ -2469,6 +2779,7 @@ class CalculatePage:
         gst = ttk.Label(new, text="Final bill amout with GST")
         gst.grid(column=2, row=5, padx=10, pady=10, sticky='W')
     
+        # finCost = indCurr(finalCost)
         costTotVar.set(data["totQuanSum"][0])
 
         self.costTot = tk.Entry(new, textvariable=costTotVar, relief="solid", width = 16, state='disabled')
@@ -2579,6 +2890,7 @@ class Cart:
     
         obj = CalculatePage()
         obj.costPage()
+    
         root.mainloop()
     
     
@@ -2587,6 +2899,7 @@ class Cart:
         self.new.grab_release()
         self.new.destroy()
     
+        
         frame0 = tk.LabelFrame(root, borderwidth=2)
         frame0.grid(column=0, row=0, padx=5, pady=5, sticky='W')
         frame1 = tk.LabelFrame(root, borderwidth=2)
@@ -2699,11 +3012,14 @@ class Cart:
         new.title('Cart')
         self.new = new
         
+        # new.grab_set()
+        
         custDetails = ttk.Label(self.new, text="Customer Details", font=("",10,"bold"))
         custDetails.grid(column=0, row=0, padx=10, pady=10, sticky='W')
         
         frame2 = tk.LabelFrame(self.new, borderwidth=2, width=1000, labelwidget=custDetails )
         frame2.grid(column=0, row=0, columnspan=3, padx=5, pady=5, sticky='W')
+        # frame2.grid_propagate(0)
         self.frame2 = frame2
         
         custNamVar.set(data.iloc[0]["custNamVar"])
@@ -2785,6 +3101,7 @@ class Cart:
                 print("Error in Deletion")
         
         for i in range(data[data.columns[0]].count()):
+            # head1 = tk.Label(frame_buttons, text=data.iloc[i]["Sr.No"], padx=10)
             head1 = tk.Label(frame_buttons, text=i+1, padx=10)
             head1.grid(column=0, row=i+2, padx=10, pady=10, sticky='W')
             head2 = tk.Label(frame_buttons, text=data.iloc[i]["windowTypeVar"], padx=10)
@@ -2813,6 +3130,7 @@ class Cart:
         cost = ttk.Label(frame_buttons, text="Total Cost")
         cost.grid(column=0, row=i+5, padx=10, pady=10, sticky='W')
         
+        # indCurr = lambda x : format_currency(x, 'INR', locale='en_IN').replace(u'\xa0', u' ')
         finAmt = tk.StringVar()
         finAmt.set(indCurr(data.iloc[i]["finalCost"]))
         
@@ -2825,9 +3143,11 @@ class Cart:
         qtyCostTot = tk.Entry(frame_buttons, textvariable=qtyAmt, relief="solid", width = 14, state='disabled')
         qtyCostTot.grid(column=6,row=i+5, padx=10, pady=10, sticky='W')
  
+        # Update buttons frames idle tasks to let tkinter calculate buttons sizes
         frame_buttons.update_idletasks()
         frame_canvas.config(width=810, height=400)
  
+        # Set the canvas scrolling region
         canvas.config(scrollregion=canvas.bbox("all"))
         
         addButt=tk.Button(self.new, text = 'Add More Items', font=("",10,"bold"), width=24, command = self.addNewItem)
@@ -2838,145 +3158,7 @@ class Cart:
         
         nextButt=tk.Button(self.new, text = 'Next', font=("",10,"bold"), width=24, command = self.nextItem)
         nextButt.grid(column=2,row=3, padx=10, pady=15, sticky='E')
-
-####################################################################################################################################################
-
-def selector():
-    global totSQFt,address,new
     
-    contact = custConVar.get() 
-    
-    if(contact.isdigit() and len(contact)>7 and len(contact)<=10 ):
-        pass
-    else:
-        messagebox.showerror("Invalid","Please enter a valid Contact Number")
-        return False
-
-    if(Width.get()=="" or Height.get()==""):
-        messagebox.showerror("Invalid","Please enter Width and Height")
-        return False
-    
-    address = custAddEnt.get("1.0","end-1c")
-    
-    new = tk.Toplevel()
-    new.attributes('-topmost',True)
-    app_width = 0
-    app_height = 430
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
-    x = (screen_width/2) - (app_width/2) - 500
-    y = (screen_height/2) - (app_height/2) - 200
-    new.geometry('+%d+%d'%(x,y))
-    
-    totSQFt = float(Width.get()) * float(Height.get())
-    totSQFt = round(totSQFt,2)    
-    
-    if(selectWinDrop.get() == "Sliding Window"):
-        new.title('Sliding Window')
-        obj = SlidingWindow(new)
-        obj.frameCreate()
-        obj.variableTitles()
-        obj.variables()
-    
-    elif(selectWinDrop.get() == "Sliding Door"):
-        new.title("Sliding Door")
-        obj = SlidingDoor(new)
-        obj.frameCreate()
-        obj.variableTitles()
-        obj.variables()
-    
-    elif(selectWinDrop.get() == "Fix Louver"):
-        new.title("Fix Louver")
-        clearValues()
-        obj = FixLouver(new)
-        obj.frameCreate()
-        obj.variableTitles()
-        obj.variables()
-    
-    elif(selectWinDrop.get() == "Patti Louver"):
-        new.title("Patti Louver")
-        clearValues()
-        obj = PattiLouver(new)
-        obj.frameCreate()
-        obj.variableTitles()
-        obj.variables()
-    
-    elif(selectWinDrop.get() == "Openable Window"):
-        new.title("Openable Window")
-        obj = OpenableWindow(new)
-        obj.frameCreate()
-        obj.variableTitles()
-        obj.variables()
-    
-    elif(selectWinDrop.get() == "Sliding folding door"):
-        new.title("Sliding folding door")
-        obj = SlidingFoldingDoor(new)
-        obj.frameCreate()
-        obj.variableTitles()
-        obj.variables()
-    
-    elif(selectWinDrop.get() == "Casement Window"):
-        new.title("Casement Window")
-        obj = CasementWindow(new)
-        obj.frameCreate()
-        obj.variableTitles()
-        obj.variables()
-    
-    elif(selectWinDrop.get() == "Aluminium partition"):
-        new.title("Aluminium partition")
-        clearValues()
-        obj = AluminiumPartition(new)
-        obj.frameCreate()
-        obj.variableTitles()
-        obj.variables()
-    
-    elif(selectWinDrop.get() == "Toughened partition"):
-        new.title("Toughened partition")
-        clearValues()
-        obj = ToughenedPartition(new)
-        obj.frameCreate()
-        obj.variableTitles()
-        obj.variables()
-    
-    elif(selectWinDrop.get() == "Toughened Door"):
-        new.title("Toughened Door")
-        clearValues()
-        obj = ToughenedDoor(new)
-        obj.frameCreate()
-        obj.variableTitles()
-        obj.variables()
-    
-    elif(selectWinDrop.get() == "Composite pannel"):
-        new.title("Composite pannel")
-        clearValues()
-        obj = CompositePanel(new)
-        obj.frameCreate()
-        obj.variableTitles()
-        obj.variables()
-    
-    elif(selectWinDrop.get() == "Curtain wall"):
-        new.title("Curtain wall")
-        clearValues()
-        obj = CurtainWall(new)
-        obj.frameCreate()
-        obj.variableTitles()
-        obj.variables()
-    
-    elif(selectWinDrop.get() == "Fix Window"):
-        new.title("Fix Window")
-        obj = FixWindow(new)
-        obj.frameCreate()
-        obj.variableTitles()
-        obj.variables()
-        
-    elif(selectWinDrop.get() == "Exhaust Fan Window"):
-        new.title("Exhaust Fan Window")
-        clearValues()
-        obj = ExhaustFanWindow(new)
-        obj.frameCreate()
-        obj.variableTitles()
-        obj.variables()
-
 ####################################################################################################################################################
 
 class SlidingWindow:
@@ -3008,6 +3190,7 @@ class SlidingWindow:
             indCurr = lambda x : format_currency(x, 'INR', locale='en_IN').replace(u'\xa0', u' ')
             cstAmt = float(totSQFt)*float(costEntVar.get())
             self.cstAmtInr.set(indCurr(cstAmt))
+            # costTotVar.set(" " + cstAmtInr)
             finalCost = finalCost + cstAmt
             calculateFlag = True
     
@@ -3040,11 +3223,14 @@ class SlidingWindow:
         frame_buttons = tk.LabelFrame(canvas, borderwidth=2,  padx=5)
         frame_buttons.grid(column=0, row=2, padx=5, pady=5)
         canvas.create_window((0, 0), window=frame_buttons, anchor='nw')
+        
         self.frame1 = frame_buttons
+        
         frame_buttons.update_idletasks()
         frame_canvas.config(width=1000, height=500)
  
-        canvas.config(scrollregion=(0,0,700,685))
+        # Set the canvas scrolling region
+        canvas.config(scrollregion=(0,0,700,685))#canvas.bbox("all"))
         custDetails = ttk.Label(self.frame2, text="Customer Details", font=("",10,"bold"))
         custDetails.grid(column=0, row=0, padx=10, pady=10, sticky='W')
     
@@ -3097,6 +3283,7 @@ class SlidingWindow:
         image = Image.open("./Images/Sliding Window.png")
         resize_image = image.resize((600, 400))
         img = ImageTk.PhotoImage(resize_image)
+        # create label and add resize image
         imgLab = tk.Label(self.frame1, image=img)
         imgLab.image = img
         imgLab.grid(column=2, row=1, rowspan=15)
@@ -3109,6 +3296,7 @@ class SlidingWindow:
         
         selectWinLabel = ttk.Label(self.frame1, text="Specifications", font=("",10,"bold"))
         selectWinLabel.grid(column=0, row=0, padx=10, pady=10, sticky='W')
+        
         typeLabel = ttk.Label(self.frame1, text="Type")
         typeLabel.grid(column=0, row=5, padx=10, pady=10, sticky='W')
         aluMaterial = ttk.Label(self.frame1, text="Aluminium Material")
@@ -3158,7 +3346,6 @@ class SlidingWindow:
         self._after_id = widget.after(1000, lambda : self.search(widget,selOpt))
             
     def variables(self):
-        
         track = ttk.Combobox(self.frame1, textvariable=trackVar, width=30, values=track_options )
         track.grid(column=1,row=5, padx=10, pady=10, sticky='W')
         track.bind('<Key>',lambda event: self.handleWait(event,track,"track_options"))
@@ -3267,6 +3454,7 @@ class SlidingDoor:
             indCurr = lambda x : format_currency(x, 'INR', locale='en_IN').replace(u'\xa0', u' ')
             cstAmt = float(totSQFt)*float(costEntVar.get())
             self.cstAmtInr.set(indCurr(cstAmt))
+            # costTotVar.set(" " + cstAmtInr)
             finalCost = finalCost + cstAmt
             calculateFlag = True
     
@@ -3304,7 +3492,10 @@ class SlidingDoor:
         
         frame_buttons.update_idletasks()
         frame_canvas.config(width=1000, height=500)
-        canvas.config(scrollregion=(0,0,700,650))
+ 
+        # Set the canvas scrolling region
+        canvas.config(scrollregion=(0,0,700,650))#canvas.bbox("all"))
+        
 
         custDetails = ttk.Label(self.frame2, text="Customer Details", font=("",10,"bold"))
         custDetails.grid(column=0, row=0, padx=10, pady=10, sticky='W')
@@ -3358,6 +3549,7 @@ class SlidingDoor:
         image = Image.open("./Images/Sliding Door.png")
         resize_image = image.resize((600, 400))
         img = ImageTk.PhotoImage(resize_image)
+        # create label and add resize image
         imgLab = tk.Label(self.frame1, image=img)
         imgLab.image = img
         imgLab.grid(column=2, row=1, rowspan=15)
@@ -3531,6 +3723,7 @@ class FixLouver:
             indCurr = lambda x : format_currency(x, 'INR', locale='en_IN').replace(u'\xa0', u' ')
             cstAmt = float(totSQFt)*float(costEntVar.get())
             self.cstAmtInr.set(indCurr(cstAmt))
+            # costTotVar.set(" " + cstAmtInr)
             finalCost = finalCost + cstAmt
             calculateFlag = True
     
@@ -3566,9 +3759,13 @@ class FixLouver:
         canvas.create_window((0, 0), window=frame_buttons, anchor='nw')
         
         self.frame1 = frame_buttons
+        
         frame_buttons.update_idletasks()
         frame_canvas.config(width=1000, height=500)
-        canvas.config(scrollregion=(0,0,700,530))
+ 
+        # Set the canvas scrolling region
+        canvas.config(scrollregion=(0,0,700,530))#canvas.bbox("all"))
+        
 
         custDetails = ttk.Label(self.frame2, text="Customer Details", font=("",10,"bold"))
         custDetails.grid(column=0, row=0, padx=10, pady=10, sticky='W')
@@ -3622,6 +3819,7 @@ class FixLouver:
         image = Image.open("./Images/Fix Louver.png")
         resize_image = image.resize((600, 400))
         img = ImageTk.PhotoImage(resize_image)
+        # create label and add resize image
         imgLab = tk.Label(self.frame1, image=img)
         imgLab.image = img
         imgLab.grid(column=2, row=1, rowspan=15)
@@ -3760,7 +3958,7 @@ class PattiLouver:
             indCurr = lambda x : format_currency(x, 'INR', locale='en_IN').replace(u'\xa0', u' ')
             cstAmt = float(totSQFt)*float(costEntVar.get())
             self.cstAmtInr.set(indCurr(cstAmt))
-            
+            # costTotVar.set(" " + cstAmtInr)
             finalCost = finalCost + cstAmt
             calculateFlag = True
     
@@ -3796,9 +3994,12 @@ class PattiLouver:
         canvas.create_window((0, 0), window=frame_buttons, anchor='nw')
         
         self.frame1 = frame_buttons
+        
         frame_buttons.update_idletasks()
         frame_canvas.config(width=1000, height=500)
-        canvas.config(scrollregion=(0,0,700,530))
+ 
+        # Set the canvas scrolling region
+        canvas.config(scrollregion=(0,0,700,530))#canvas.bbox("all"))
         
 
         custDetails = ttk.Label(self.frame2, text="Customer Details", font=("",10,"bold"))
@@ -3853,6 +4054,7 @@ class PattiLouver:
         image = Image.open("./Images/Patti Louver.png")
         resize_image = image.resize((600, 400))
         img = ImageTk.PhotoImage(resize_image)
+        # create label and add resize image
         imgLab = tk.Label(self.frame1, image=img)
         imgLab.image = img
         imgLab.grid(column=2, row=1, rowspan=15)
@@ -3992,7 +4194,7 @@ class OpenableWindow:
             indCurr = lambda x : format_currency(x, 'INR', locale='en_IN').replace(u'\xa0', u' ')
             cstAmt = float(totSQFt)*float(costEntVar.get())
             self.cstAmtInr.set(indCurr(cstAmt))
-            
+            # costTotVar.set(" " + cstAmtInr)
             finalCost = finalCost + cstAmt
             calculateFlag = True
     
@@ -4028,9 +4230,13 @@ class OpenableWindow:
         canvas.create_window((0, 0), window=frame_buttons, anchor='nw')
         
         self.frame1 = frame_buttons
+        
         frame_buttons.update_idletasks()
         frame_canvas.config(width=1000, height=500)
-        canvas.config(scrollregion=(0,0,700,690))
+ 
+        # Set the canvas scrolling region
+        canvas.config(scrollregion=(0,0,700,690))#canvas.bbox("all"))
+        
 
         custDetails = ttk.Label(self.frame2, text="Customer Details", font=("",10,"bold"))
         custDetails.grid(column=0, row=0, padx=10, pady=10, sticky='W')
@@ -4264,7 +4470,7 @@ class SlidingFoldingDoor:
             indCurr = lambda x : format_currency(x, 'INR', locale='en_IN').replace(u'\xa0', u' ')
             cstAmt = float(totSQFt)*float(costEntVar.get())
             self.cstAmtInr.set(indCurr(cstAmt))
-            
+            # costTotVar.set(" " + cstAmtInr)
             finalCost = finalCost + cstAmt
             calculateFlag = True
     
@@ -4299,9 +4505,13 @@ class SlidingFoldingDoor:
         canvas.create_window((0, 0), window=frame_buttons, anchor='nw')
         
         self.frame1 = frame_buttons
+        
         frame_buttons.update_idletasks()
         frame_canvas.config(width=1000, height=500)
-        canvas.config(scrollregion=(0,0,700,690))       
+ 
+        # Set the canvas scrolling region
+        canvas.config(scrollregion=(0,0,700,690))#canvas.bbox("all"))
+        
 
         custDetails = ttk.Label(self.frame2, text="Customer Details", font=("",10,"bold"))
         custDetails.grid(column=0, row=0, padx=10, pady=10, sticky='W')
@@ -4355,6 +4565,7 @@ class SlidingFoldingDoor:
         image = Image.open("./Images/Sliding folding door.png")
         resize_image = image.resize((600, 400))
         img = ImageTk.PhotoImage(resize_image)
+        # create label and add resize image
         imgLab = tk.Label(self.frame1, image=img)
         imgLab.image = img
         imgLab.grid(column=2, row=1, rowspan=15)
@@ -4534,7 +4745,7 @@ class CasementWindow:
             indCurr = lambda x : format_currency(x, 'INR', locale='en_IN').replace(u'\xa0', u' ')
             cstAmt = float(totSQFt)*float(costEntVar.get())
             self.cstAmtInr.set(indCurr(cstAmt))
-            
+            # costTotVar.set(" " + cstAmtInr)
             finalCost = finalCost + cstAmt
             calculateFlag = True
     
@@ -4570,9 +4781,13 @@ class CasementWindow:
         canvas.create_window((0, 0), window=frame_buttons, anchor='nw')
         
         self.frame1 = frame_buttons
+        
         frame_buttons.update_idletasks()
         frame_canvas.config(width=1000, height=500)
-        canvas.config(scrollregion=(0,0,700,695))
+ 
+        # Set the canvas scrolling region
+        canvas.config(scrollregion=(0,0,700,695))#canvas.bbox("all"))
+        
 
         custDetails = ttk.Label(self.frame2, text="Customer Details", font=("",10,"bold"))
         custDetails.grid(column=0, row=0, padx=10, pady=10, sticky='W')
@@ -4626,6 +4841,7 @@ class CasementWindow:
         image = Image.open("./Images/Casement Window.png")
         resize_image = image.resize((600, 400))
         img = ImageTk.PhotoImage(resize_image)
+        # create label and add resize image
         imgLab = tk.Label(self.frame1, image=img)
         imgLab.image = img
         imgLab.grid(column=2, row=1, rowspan=15)
@@ -4805,7 +5021,7 @@ class AluminiumPartition:
             indCurr = lambda x : format_currency(x, 'INR', locale='en_IN').replace(u'\xa0', u' ')
             cstAmt = float(totSQFt)*float(costEntVar.get())
             self.cstAmtInr.set(indCurr(cstAmt))
-            
+            # costTotVar.set(" " + cstAmtInr)
             finalCost = finalCost + cstAmt
             calculateFlag = True
     
@@ -4841,9 +5057,12 @@ class AluminiumPartition:
         canvas.create_window((0, 0), window=frame_buttons, anchor='nw')
         
         self.frame1 = frame_buttons
+        
         frame_buttons.update_idletasks()
         frame_canvas.config(width=1000, height=500)
-        canvas.config(scrollregion=(0,0,700,530))
+ 
+        # Set the canvas scrolling region
+        canvas.config(scrollregion=(0,0,700,530))#canvas.bbox("all"))
         
 
         custDetails = ttk.Label(self.frame2, text="Customer Details", font=("",10,"bold"))
@@ -4898,6 +5117,7 @@ class AluminiumPartition:
         image = Image.open("./Images/Aluminium partition.png")
         resize_image = image.resize((600, 400))
         img = ImageTk.PhotoImage(resize_image)
+        # create label and add resize image
         imgLab = tk.Label(self.frame1, image=img)
         imgLab.image = img
         imgLab.grid(column=2, row=1, rowspan=15)
@@ -5035,7 +5255,7 @@ class ToughenedPartition:
             indCurr = lambda x : format_currency(x, 'INR', locale='en_IN').replace(u'\xa0', u' ')
             cstAmt = float(totSQFt)*float(costEntVar.get())
             self.cstAmtInr.set(indCurr(cstAmt))
-            
+            # costTotVar.set(" " + cstAmtInr)
             finalCost = finalCost + cstAmt
             calculateFlag = True
     
@@ -5071,9 +5291,13 @@ class ToughenedPartition:
         canvas.create_window((0, 0), window=frame_buttons, anchor='nw')
         
         self.frame1 = frame_buttons
+        
         frame_buttons.update_idletasks()
         frame_canvas.config(width=1000, height=500)
-        canvas.config(scrollregion=(0,0,700,530))
+ 
+        # Set the canvas scrolling region
+        canvas.config(scrollregion=(0,0,700,530))#canvas.bbox("all"))
+        
 
         custDetails = ttk.Label(self.frame2, text="Customer Details", font=("",10,"bold"))
         custDetails.grid(column=0, row=0, padx=10, pady=10, sticky='W')
@@ -5127,6 +5351,7 @@ class ToughenedPartition:
         image = Image.open("./Images/Toughened partition.png")
         resize_image = image.resize((600, 400))
         img = ImageTk.PhotoImage(resize_image)
+        # create label and add resize image
         imgLab = tk.Label(self.frame1, image=img)
         imgLab.image = img
         imgLab.grid(column=2, row=1, rowspan=15)
@@ -5257,7 +5482,7 @@ class ToughenedDoor:
             indCurr = lambda x : format_currency(x, 'INR', locale='en_IN').replace(u'\xa0', u' ')
             cstAmt = float(totSQFt)*float(costEntVar.get())
             self.cstAmtInr.set(indCurr(cstAmt))
-            
+            # costTotVar.set(" " + cstAmtInr)
             finalCost = finalCost + cstAmt
             calculateFlag = True
     
@@ -5293,9 +5518,12 @@ class ToughenedDoor:
         canvas.create_window((0, 0), window=frame_buttons, anchor='nw')
         
         self.frame1 = frame_buttons
+        
         frame_buttons.update_idletasks()
         frame_canvas.config(width=1000, height=500)
-        canvas.config(scrollregion=(0,0,700,530))
+ 
+        # Set the canvas scrolling region
+        canvas.config(scrollregion=(0,0,700,530))#canvas.bbox("all"))
         
 
         custDetails = ttk.Label(self.frame2, text="Customer Details", font=("",10,"bold"))
@@ -5350,6 +5578,7 @@ class ToughenedDoor:
         image = Image.open("./Images/Toughened Door.png")
         resize_image = image.resize((600, 400))
         img = ImageTk.PhotoImage(resize_image)
+        # create label and add resize image
         imgLab = tk.Label(self.frame1, image=img)
         imgLab.image = img
         imgLab.grid(column=2, row=1, rowspan=15)
@@ -5481,7 +5710,7 @@ class CompositePanel:
             indCurr = lambda x : format_currency(x, 'INR', locale='en_IN').replace(u'\xa0', u' ')
             cstAmt = float(totSQFt)*float(costEntVar.get())
             self.cstAmtInr.set(indCurr(cstAmt))
-            
+            # costTotVar.set(" " + cstAmtInr)
             finalCost = finalCost + cstAmt
             calculateFlag = True
     
@@ -5516,9 +5745,12 @@ class CompositePanel:
         canvas.create_window((0, 0), window=frame_buttons, anchor='nw')
         
         self.frame1 = frame_buttons
+        
         frame_buttons.update_idletasks()
         frame_canvas.config(width=1000, height=500)
-        canvas.config(scrollregion=(0,0,700,530))
+ 
+        # Set the canvas scrolling region
+        canvas.config(scrollregion=(0,0,700,530))#canvas.bbox("all"))
         
 
         custDetails = ttk.Label(self.frame2, text="Customer Details", font=("",10,"bold"))
@@ -5573,6 +5805,7 @@ class CompositePanel:
         image = Image.open("./Images/Composite pannel.png")
         resize_image = image.resize((600, 400))
         img = ImageTk.PhotoImage(resize_image)
+        # create label and add resize image
         imgLab = tk.Label(self.frame1, image=img)
         imgLab.image = img
         imgLab.grid(column=2, row=1, rowspan=15)
@@ -5705,7 +5938,7 @@ class CurtainWall:
             indCurr = lambda x : format_currency(x, 'INR', locale='en_IN').replace(u'\xa0', u' ')
             cstAmt = float(totSQFt)*float(costEntVar.get())
             self.cstAmtInr.set(indCurr(cstAmt))
-            
+            # costTotVar.set(" " + cstAmtInr)
             finalCost = finalCost + cstAmt
             calculateFlag = True
     
@@ -5744,8 +5977,11 @@ class CurtainWall:
         
         frame_buttons.update_idletasks()
         frame_canvas.config(width=1000, height=500)
-        canvas.config(scrollregion=(0,0,700,530))
+ 
+        # Set the canvas scrolling region
+        canvas.config(scrollregion=(0,0,700,530))#canvas.bbox("all"))
         
+
         custDetails = ttk.Label(self.frame2, text="Customer Details", font=("",10,"bold"))
         custDetails.grid(column=0, row=0, padx=10, pady=10, sticky='W')
     
@@ -5798,6 +6034,7 @@ class CurtainWall:
         image = Image.open("./Images/Curtain wall.png")
         resize_image = image.resize((600, 400))
         img = ImageTk.PhotoImage(resize_image)
+        # create label and add resize image
         imgLab = tk.Label(self.frame1, image=img)
         imgLab.image = img
         imgLab.grid(column=2, row=1, rowspan=15)
@@ -5883,7 +6120,7 @@ class FixWindow:
             indCurr = lambda x : format_currency(x, 'INR', locale='en_IN').replace(u'\xa0', u' ')
             cstAmt = float(totSQFt)*float(costEntVar.get())
             self.cstAmtInr.set(indCurr(cstAmt))
-            
+            # costTotVar.set(" " + cstAmtInr)
             finalCost = finalCost + cstAmt
             calculateFlag = True
    
@@ -5919,9 +6156,13 @@ class FixWindow:
         canvas.create_window((0, 0), window=frame_buttons, anchor='nw')
         
         self.frame1 = frame_buttons
+        
         frame_buttons.update_idletasks()
         frame_canvas.config(width=1000, height=500)
-        canvas.config(scrollregion=(0,0,700,650))
+ 
+        # Set the canvas scrolling region
+        canvas.config(scrollregion=(0,0,700,650))#canvas.bbox("all"))
+        
 
         custDetails = ttk.Label(self.frame2, text="Customer Details", font=("",10,"bold"))
         custDetails.grid(column=0, row=0, padx=10, pady=10, sticky='W')
@@ -5975,6 +6216,7 @@ class FixWindow:
         image = Image.open("./Images/Fix Window.png")
         resize_image = image.resize((600, 400))
         img = ImageTk.PhotoImage(resize_image)
+        # create label and add resize image
         imgLab = tk.Label(self.frame1, image=img)
         imgLab.image = img
         imgLab.grid(column=2, row=1, rowspan=15)
@@ -6149,6 +6391,7 @@ class ExhaustFanWindow:
             indCurr = lambda x : format_currency(x, 'INR', locale='en_IN').replace(u'\xa0', u' ')
             cstAmt = float(totSQFt)*float(costEntVar.get())
             self.cstAmtInr.set(indCurr(cstAmt))
+            # costTotVar.set(" " + cstAmtInr)
             finalCost = finalCost + cstAmt
             calculateFlag = True
     
@@ -6184,9 +6427,13 @@ class ExhaustFanWindow:
         canvas.create_window((0, 0), window=frame_buttons, anchor='nw')
         
         self.frame1 = frame_buttons
+        
         frame_buttons.update_idletasks()
         frame_canvas.config(width=1000, height=500)
-        canvas.config(scrollregion=(0,0,700,590))
+ 
+        # Set the canvas scrolling region
+        canvas.config(scrollregion=(0,0,700,590))#canvas.bbox("all"))
+        
 
         custDetails = ttk.Label(self.frame2, text="Customer Details", font=("",10,"bold"))
         custDetails.grid(column=0, row=0, padx=10, pady=10, sticky='W')
@@ -6240,6 +6487,7 @@ class ExhaustFanWindow:
         image = Image.open("./Images/Exhaust Fan Window.png")
         resize_image = image.resize((600, 400))
         img = ImageTk.PhotoImage(resize_image)
+        # create label and add resize image
         imgLab = tk.Label(self.frame1, image=img)
         imgLab.image = img
         imgLab.grid(column=2, row=1, rowspan=15)
@@ -6361,7 +6609,11 @@ class ExhaustFanWindow:
 ####################################################################################################################################################        
 
 custDetails = ttk.Label(root, text="Enter Customer Details", font=("",10,"bold"))
+# custDetails.grid(column=0, row=0, padx=10, pady=10, sticky='W')
+
 windDetails = ttk.Label(root, text="Enter Window Details", font=("",10,"bold"))
+# custDetails.grid(column=0, row=0, padx=10, pady=10, sticky='W')
+
 frame0 = tk.LabelFrame(root, borderwidth=2, labelwidget=custDetails)
 frame0.grid(column=0, row=0, padx=5, pady=5, sticky='W')
 frame1 = tk.LabelFrame(root, borderwidth=2, labelwidget=windDetails)
@@ -6394,9 +6646,13 @@ custNamEnt = tk.Entry(frame0, textvariable=custNamVar, font=("",10,""), relief="
 custNamEnt.grid(column=1,row=1, padx=10, pady=10, sticky='W')
 custAddEnt = tk.Text(frame0, font=("",10,""), relief="solid", height=3, width = 21)
 custAddEnt.grid(column=1,row=2, padx=10, pady=10, sticky='W')
-custConEnt = tk.Entry(frame0, textvariable=custConVar, font=("",10,""), relief="solid", width = 21)
+# custAddEnt.config(state=tk.DISABLED)
+custConEnt = tk.Entry(frame0, textvariable=custConVar, font=("",10,""), relief="solid", width = 21)#, validate='key', validatecommand=(reg, '%d', '%i','%S'))
+# custConVar.set(1234567890)
 custConEnt.grid(column=1,row=3, padx=10, pady=10, sticky='W')
 
+# custDetails = ttk.Label(frame1, text="Enter Window Details", font=("",10,"bold"))
+# custDetails.grid(column=0, row=0, padx=10, pady=10, sticky='W')
 selectWinLabel = ttk.Label(frame1, text="Select Window Type")
 selectWinLabel.grid(column=0, row=5, padx=10, pady=10, sticky='W')
 selectWinDrop = ttk.Combobox(frame1, state="readonly", textvariable=windowTypeVar, width=27)
@@ -6415,7 +6671,8 @@ heightLabel.grid(column=0, row=7, padx=10, pady=10, sticky='W')
 enterHeight = tk.Entry(frame1, textvariable=Height, font=("",10,""), relief="solid", width = 27)
 enterHeight.grid(column=1,row=7, padx=10, pady=10, sticky='W')
 
-# obj = Invoice()
+obj = Invoice()
+
 # invoice=tk.Button(new, text = 'Invoice Page', width=20, command = obj.invWindow)
 # invoice.grid(column=1,row=1, columnspan=2, padx=10, pady=15, sticky='E')
 
@@ -6426,3 +6683,5 @@ m.add_cascade(label="Menu", menu=file_menu)
 file_menu.add_command(label="Open from file", command=open_file1)
 
 root.mainloop()
+
+# Invoice Generation

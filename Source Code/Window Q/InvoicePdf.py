@@ -17,7 +17,6 @@ from math import ceil
 
 data = pd.read_excel('./data/Somesh Bagadiya_QuatationData.xlsx')
 data = data.replace(float('nan'),"")
-
 # data = None
 custName = None
 # Returns the current local date
@@ -74,8 +73,9 @@ class PDFInvoice(FPDF):
         self.line(15, 105, 195, 105)
         self.line(23, 96, 23, printLevel)
         self.line(88, 96, 88, printLevel)
-        self.line(115, 96, 115, printLevel)
-        self.line(145, 96, 145, printLevel)
+        self.line(108, 96, 107, printLevel)
+        self.line(132, 96, 132, printLevel)
+        self.line(157, 96, 157, printLevel)
         self.line(167.5, 96, 167.5, printLevel)
        
     def drawLinesTax(self, startTaxLevel, taxLevel):
@@ -158,38 +158,54 @@ class PDFInvoice(FPDF):
         self.set_x(15.5)
         self.set_font('helvetica', '', 8)
         self.cell(w=7,txt="{}".format(x+1), align="C")
+        
+        wi = float(data["Width"][x].replace("ft",""))
+        he = float(data["Height"][x].replace("ft",""))
+        
+        area = wi*he
+        are = str(round(area,2)) + " Sq Ft."
+        
+        desc = data["windowTypeVar"][x]
+        desc1 = " (" + data["Width"][x] + " x " + data["Height"][x] + " = " + are + ")"
 
-        desc = data["windowTypeVar"][x] + " (" + data["Width"][x] + " x " + data["Height"][x] + ")"
+        w = self.get_string_width(desc)
 
         self.set_y(printLevel)
         self.set_x(24)
-        self.set_font('helvetica', '', 8)
-        self.cell(w=77,txt="{}".format(desc), align="L")
+        self.set_font('helvetica', 'BI', 8)
+        self.cell(w=w+2,txt="{}".format(desc), align="L")
+        self.set_font('helvetica', '', 7)
+        self.cell(w=77,txt="{}".format(desc1), align="L")
         
 
         self.set_y(printLevel)
         self.set_x(88)
         self.set_font('helvetica', '', 8)
-        self.cell(w=22.5,txt="{}".format(data["hsnSacVar"][x]), align='L')
+        self.cell(w=20,txt="{}".format(data["hsnSacVar"][x]), align='C')
         
-        rate = data["cstAmtInr"][x]
+        amount = data["cstAmtInr"][x]
+        rate = data["costEntVar"][x]
 
         self.set_y(printLevel)
         self.set_x(115)
         self.set_font('helvetica', '', 8)
-        self.cell(w=22.5,txt="Rs. {}".format(rate[1:]), align='L')
+        self.cell(w=22.5,txt="{}".format(rate), align='L')
 
         self.set_y(printLevel)
-        self.set_x(145)
+        self.set_x(133)
         self.set_font('helvetica', '', 8)
-        self.cell(w=22.5,txt="{}".format(data["quantity"][x]), align='C')
+        self.cell(w=25,txt="Rs. {}".format(amount[1:]), align='L')
+
+        self.set_y(printLevel)
+        self.set_x(160)
+        self.set_font('helvetica', '', 8)
+        self.cell(txt="{}".format(data["quantity"][x]), align='C')
         
         amt = data["quantAmnt"][x]
 
         self.set_y(printLevel)
         self.set_x(168)
         self.set_font('helvetica', 'B', 8)
-        
         self.cell(w=22.5,txt="Rs. {}".format(amt[1:]), align='L')
         
     def homePage(self):
@@ -273,7 +289,7 @@ class PDFInvoice(FPDF):
         self.set_y(58)
         self.set_x(17+wi)
         self.set_font('helvetica', 'I', 8)
-        self.cell(w=0,txt="1234567890")
+        self.cell(w=0,txt="CURPB8193C")
         
         #------------------------------------------------------------------------------------------------------------------------------------
         
@@ -418,22 +434,27 @@ class PDFInvoice(FPDF):
         self.set_y(99)
         self.set_x(88)
         self.set_font('helvetica', 'B', 10)
-        self.cell(w=27,txt="HSN/SAC", align='C')
+        self.cell(w=20, txt="HSN/SAC", align='C')
 
         self.set_y(99)
-        self.set_x(115)
+        self.set_x(110)
         self.set_font('helvetica', 'B', 10)
-        self.cell(w=30,txt="Rate", align='C')
+        self.cell(txt="Rate/Sq Ft.", align='C')
+        
+        self.set_y(99)
+        self.set_x(133)
+        self.set_font('helvetica', 'B', 10)
+        self.cell(w=24, txt="Amount", align='C')
 
         self.set_y(99)
-        self.set_x(145)
+        self.set_x(158)
         self.set_font('helvetica', 'B', 10)
-        self.cell(w=22.5,txt="Quantity", align='C')
+        self.cell(txt="Qty.", align='C')
     
         self.set_y(99)
         self.set_x(167.5)
         self.set_font('helvetica', 'B', 10)
-        self.cell(w=27.5,txt="Amount", align='C')
+        self.cell(txt="Total Amount", align='C')
     
     def infosection(self):
         

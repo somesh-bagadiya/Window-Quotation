@@ -809,11 +809,14 @@ class PDF(FPDF):
         str5 = "c. Balalnce amount to be paid at the time of handover."
         str6 = "3. WORK SPACE & ELECTRICITY"
         str7 = "a. Adequate storage space and electricity shall be provided on site by the customer."
-        str8 = "4. WARRANTY"
-        str9 = "a. Profile warranty for de-colourisation is 10 yrs."
-        str10 = "b. Hardware (Rollers and locking system) warranty is for 5 yrs."
-        str11 = "Thanking you and assuring you the best of our services all the times."
-        str12 = "I have gone through the specifications & Drawings. \nI accept terms and conditions"
+        str8 = "4. Aperture/Surface where window will be installed should be smooth."
+        str9 = "5. At least one coat of paint must be finished before installation."
+        str10 = "6. Grills must be painted before installation begins."
+        str11 = "7. Scaffolding/Bracing should be provided on site by the customer if required."
+        str12 = "8. Measurements are taken as per standard units."
+        str13 = "9. Actual cost may vary based on the measurement taken at the time of installation."
+        str14 = "Thanking you and assuring you the best of our services all the times."
+        str15 = "I have gone through the specifications & Drawings. \nI accept terms and conditions"
 
         self.set_y(endLevel)
         self.set_x(15)
@@ -903,6 +906,30 @@ class PDF(FPDF):
         self.set_fill_color(229,233,243)
         self.multi_cell(w=180, h=7, txt=str11, align='L')
         
+        endLevel = self.get_y() + 5
+        
+        self.set_y(endLevel)
+        self.set_x(15)
+        self.set_font('helvetica', 'B', 10)
+        self.set_fill_color(229,233,243)
+        self.multi_cell(w=180, h=7, txt=str12, align='L')
+        
+        endLevel = self.get_y() + 5
+        
+        self.set_y(endLevel)
+        self.set_x(15)
+        self.set_font('helvetica', 'B', 10)
+        self.set_fill_color(229,233,243)
+        self.multi_cell(w=180, h=7, txt=str13, align='L')
+    
+        endLevel = self.get_y() + 5
+        
+        self.set_y(endLevel)
+        self.set_x(15)
+        self.set_font('helvetica', 'B', 10)
+        self.set_fill_color(229,233,243)
+        self.multi_cell(w=180, h=7, txt=str14, align='L')
+        
         endLevel = self.get_y() +  40
         print(endLevel)
         if(endLevel>270):
@@ -914,7 +941,7 @@ class PDF(FPDF):
         self.set_font('helvetica', 'B', 9)
         self.set_fill_color(229,233,243)
         # self.set_text_color(255,0,0)
-        self.multi_cell(w=85, h=7, txt=str12, align='L')
+        self.multi_cell(w=85, h=7, txt=str15, align='L')
         
         
     def driverCode(self):
