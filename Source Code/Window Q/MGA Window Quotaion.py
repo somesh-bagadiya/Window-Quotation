@@ -357,6 +357,12 @@ class PDF(FPDF):
         self.cell(w=10,txt="Area: {} Sq.Ft.".format(data["totSqftEntVar"][x]))
         textLevel = textLevel + 4
         self.set_y(textLevel)
+        self.set_y(textLevel)
+        self.set_x(specs)
+        self.set_font('helvetica', '', 6)
+        self.cell(w=10,txt="Rate (Rs.): {} Sq.Ft.".format(data["costEntVar"][x]))
+        textLevel = textLevel + 4
+        self.set_y(textLevel)
         self.set_x(specs)
         for i in varName.keys():
             if(data.iloc[x][i]!="" and data.iloc[x][i]!=0 ):
@@ -1328,7 +1334,7 @@ class PDFInvoice(FPDF):
         self.set_y(printLevel)
         self.set_x(160)
         self.set_font('helvetica', '', 8)
-        self.cell(txt="{}".format(data["quantity"][x]), align='C')
+        self.cell(w=8, txt="{}".format(data["quantity"][x]), align='C')
         
         amt = data["quantAmnt"][x]
 
@@ -1535,12 +1541,12 @@ class PDFInvoice(FPDF):
         self.drawLines()
     
     def infosectionTitle(self):
-        self.set_y(97)
+        self.set_y(97.5)
         self.set_x(15.5)
         self.set_font('helvetica', 'B', 10)
         self.cell(w=0,txt="Sr.")        
         
-        self.set_y(101)
+        self.set_y(101.5)
         self.set_x(15.5)
         self.set_font('helvetica', 'B', 10)
         self.cell(w=0,txt="No.")
@@ -1558,7 +1564,7 @@ class PDFInvoice(FPDF):
         self.set_y(99)
         self.set_x(110)
         self.set_font('helvetica', 'B', 10)
-        self.cell(txt="Rate/Sq Ft.", align='C')
+        self.cell(w=23, txt="Rate/Sq Ft.", align='C')
         
         self.set_y(99)
         self.set_x(133)
@@ -1568,12 +1574,12 @@ class PDFInvoice(FPDF):
         self.set_y(99)
         self.set_x(158)
         self.set_font('helvetica', 'B', 10)
-        self.cell(txt="Qty.", align='C')
+        self.cell(w=10, txt="Qty.", align='C')
     
         self.set_y(99)
         self.set_x(167.5)
         self.set_font('helvetica', 'B', 10)
-        self.cell(txt="Total Amount", align='C')
+        self.cell(w=30, txt="Total Amount", align='C')
     
     def infosection(self):
         
@@ -2258,10 +2264,10 @@ class Invoice:
         invNumb = tk.Label(frame3, text="Invoice Number")
         invNumb.grid(column=0, row=0, padx=10, pady=10, sticky='W')
         
-        invoiceNumber = data["custNamVar"][0][:3] + "/" + str(today.day) + str(today.month) + "-" + str(today.year) + "/" + str(randint(100, 999))
-        data["invoiceNumber"] = invoiceNumber
-        self.invNumbVar.set(invoiceNumber)
-        invNumbEnt = tk.Entry(frame3, textvariable=self.invNumbVar, font=("",9,""), relief="solid", width = 20, state="disabled")
+        #invoiceNumber = data["custNamVar"][0][:3] + "/" + str(today.day) + str(today.month) + "-" + str(today.year) + "/" + str(randint(100, 999))
+        #data["invoiceNumber"] = invoiceNumber
+        #self.invNumbVar.set(invoiceNumber)
+        invNumbEnt = tk.Entry(frame3, textvariable=self.invNumbVar, font=("",9,""), relief="solid", width = 20)
         invNumbEnt.grid(column=1,row=0, padx=10, pady=10, sticky='W')
         
         quoNumb = tk.Label(frame3, text="Enter Quotation Number")
