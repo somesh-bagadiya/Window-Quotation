@@ -353,14 +353,15 @@ class PDF(FPDF):
     def printSpecs(self, textLevel, specs, x):
         self.set_y(textLevel)
         self.set_x(specs)
-        self.set_font('helvetica', '', 6)
-        self.cell(w=10,txt="Area: {} Sq.Ft.".format(data["totSqftEntVar"][x]))
+        self.set_font('helvetica', 'BI', 7)
+        self.set_text_color(118, 175, 93)
+        self.cell(w=10,txt="Rate (Rs.): {} Sq.Ft.".format(data["costEntVar"][x]))
         textLevel = textLevel + 4
-        self.set_y(textLevel)
         self.set_y(textLevel)
         self.set_x(specs)
         self.set_font('helvetica', '', 6)
-        self.cell(w=10,txt="Rate (Rs.): {} Sq.Ft.".format(data["costEntVar"][x]))
+        self.set_text_color(0,0,0)
+        self.cell(w=10,txt="Area: {} Sq.Ft.".format(data["totSqftEntVar"][x]))
         textLevel = textLevel + 4
         self.set_y(textLevel)
         self.set_x(specs)
