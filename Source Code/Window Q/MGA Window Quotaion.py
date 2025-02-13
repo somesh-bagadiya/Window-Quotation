@@ -158,7 +158,6 @@ totSrno = len(list(data["Sr.No"]))
 printCount = 0
 ratio = dict()
 
-
 SlidingWindowWidth = 45
 SlidingWindowHeight = 40
 
