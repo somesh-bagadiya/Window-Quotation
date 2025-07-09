@@ -1,0 +1,28 @@
+# Pytest Testing Dependencies for Window Quotation Application
+
+# Core pytest framework
+pytest==7.4.3
+
+# Test reporting and coverage
+pytest-html==4.1.1           # HTML test reports
+pytest-cov==4.1.0            # Coverage reporting
+
+# Enhanced testing capabilities
+pytest-mock==3.12.0          # Enhanced mocking capabilities
+pytest-xdist==3.3.1          # Parallel test execution
+pytest-timeout==2.2.0        # Test timeout handling
+
+# Performance testing
+pytest-benchmark==4.0.0      # Performance benchmarking
+
+# GUI testing support
+pytest-qt==4.2.0             # GUI testing utilities
+
+# Async testing (for future use)
+pytest-asyncio==0.21.1       # Async testing support
+
+# Additional testing utilities
+hypothesis==6.92.1           # Property-based testing
+
+# Development utilities
+pytest-watch==4.2.0          # Watch mode for continuous testing 
