@@ -238,7 +238,7 @@ class TestCartIntegration:
         
         # Test cart total
         total = app.data_manager.get_cart_total_amount()
-        assert total == 1500.0
+        assert total == 120000.0  # 1500 * 80 * 1
     
     @pytest.mark.ui
     @patch('ui.main_app.CartView')

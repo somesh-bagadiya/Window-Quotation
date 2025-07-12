@@ -1,9 +1,382 @@
+"""
+RESPONSIVE PRODUCT FRAME SYSTEM
+===============================
+
+This file contains the ProductFrameConfig class which automatically adapts
+all dimensions and sizing to different screen resolutions and DPI settings.
+
+RESPONSIVE FEATURES:
+- Automatic screen size detection and scaling
+- DPI-aware font and widget sizing  
+- Cross-platform compatibility (Windows, macOS, Linux)
+- Minimum/maximum size constraints for usability
+- Percentage-based layouts that adapt to screen size
+
+The system automatically calculates appropriate sizes based on:
+- Screen resolution (1920x1080 baseline)
+- System DPI settings (96 DPI baseline)
+- Physical screen size
+- Platform-specific adjustments
+
+All changes take effect when you restart the application.
+"""
+
 import tkinter as tk
 from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
 import os
 from babel.numbers import format_currency
 from global_state import get_global_state
+from ui.responsive_config import get_responsive_config
+
+
+class ProductFrameConfig:
+    """
+    Responsive configuration for all product frame dimensions and sizing
+    
+    RESPONSIVE SYSTEM:
+    ==================
+    
+    This class now uses the ResponsiveConfig system to automatically
+    calculate appropriate dimensions based on:
+    
+    1. SCREEN DETECTION: Automatically detects screen size and DPI
+    2. SCALING CALCULATION: Calculates optimal scaling factors
+    3. CONSTRAINT APPLICATION: Applies min/max limits for usability
+    4. CROSS-PLATFORM: Works on Windows, macOS, and Linux
+    
+    The system ensures that:
+    - UI elements are appropriately sized for the display
+    - Text remains readable at all resolutions
+    - Windows fit properly on screen
+    - Layouts remain functional across different screen sizes
+    """
+    
+    # Initialize responsive configuration
+    _responsive = None
+    _config_cache = None
+    
+    @classmethod
+    def _get_responsive_config(cls):
+        """Get or create responsive configuration instance"""
+        if cls._responsive is None:
+            cls._responsive = get_responsive_config()
+        return cls._responsive
+    
+    @classmethod
+    def _get_config(cls):
+        """Get cached responsive configuration"""
+        if cls._config_cache is None:
+            responsive = cls._get_responsive_config()
+            cls._config_cache = responsive.get_product_frame_config()
+        return cls._config_cache
+    
+    @classmethod
+    def _get_value(cls, key):
+        """Get a responsive configuration value"""
+        config = cls._get_config()
+        return config.get(key, 0)
+    
+    # ============= RESPONSIVE VALUE GETTERS =============
+    
+    @classmethod
+    def get_window_width(cls):
+        return cls._get_value("WINDOW_WIDTH")
+    
+    @classmethod
+    def get_window_height(cls):
+        return cls._get_value("WINDOW_HEIGHT")
+    
+    @classmethod
+    def get_frame_padding_x(cls):
+        return cls._get_value("FRAME_PADDING_X")
+    
+    @classmethod
+    def get_frame_padding_y(cls):
+        return cls._get_value("FRAME_PADDING_Y")
+    
+    @classmethod
+    def get_frame_border_width(cls):
+        return cls._get_value("FRAME_BORDER_WIDTH")
+    
+    @classmethod
+    def get_customer_section_width(cls):
+        return cls._get_value("CUSTOMER_SECTION_WIDTH")
+    
+    @classmethod
+    def get_customer_section_height(cls):
+        return cls._get_value("CUSTOMER_SECTION_HEIGHT")
+    
+    @classmethod
+    def get_customer_field_width(cls):
+        return cls._get_value("CUSTOMER_FIELD_WIDTH")
+    
+    @classmethod
+    def get_customer_address_height(cls):
+        return cls._get_value("CUSTOMER_ADDRESS_HEIGHT")
+    
+    @classmethod
+    def get_dimensions_section_width(cls):
+        return cls._get_value("DIMENSIONS_SECTION_WIDTH")
+    
+    @classmethod
+    def get_dimensions_section_height(cls):
+        return cls._get_value("DIMENSIONS_SECTION_HEIGHT")
+    
+    @classmethod
+    def get_dimensions_field_width(cls):
+        return cls._get_value("DIMENSIONS_FIELD_WIDTH")
+    
+    @classmethod
+    def get_cost_field_width(cls):
+        return cls._get_value("COST_FIELD_WIDTH")
+    
+    @classmethod
+    def get_calculate_button_width(cls):
+        return cls._get_value("CALCULATE_BUTTON_WIDTH")
+    
+    @classmethod
+    def get_specs_canvas_width(cls):
+        return cls._get_value("SPECS_CANVAS_WIDTH")
+    
+    @classmethod
+    def get_specs_canvas_height(cls):
+        return cls._get_value("SPECS_CANVAS_HEIGHT")
+    
+    @classmethod
+    def get_specs_scroll_width(cls):
+        return cls._get_value("SPECS_SCROLL_WIDTH")
+    
+    @classmethod
+    def get_specs_scroll_height(cls):
+        return cls._get_value("SPECS_SCROLL_HEIGHT")
+    
+    @classmethod
+    def get_specs_label_column_width(cls):
+        return cls._get_value("SPECS_LABEL_COLUMN_WIDTH")
+    
+    @classmethod
+    def get_specs_entry_column_width(cls):
+        return cls._get_value("SPECS_ENTRY_COLUMN_WIDTH")
+    
+    @classmethod
+    def get_specs_image_column_width(cls):
+        return cls._get_value("SPECS_IMAGE_COLUMN_WIDTH")
+    
+    @classmethod
+    def get_product_image_width(cls):
+        return cls._get_value("PRODUCT_IMAGE_WIDTH")
+    
+    @classmethod
+    def get_product_image_height(cls):
+        return cls._get_value("PRODUCT_IMAGE_HEIGHT")
+    
+    @classmethod
+    def get_dropdown_width(cls):
+        return cls._get_value("DROPDOWN_WIDTH")
+    
+    @classmethod
+    def get_entry_field_width(cls):
+        return cls._get_value("ENTRY_FIELD_WIDTH")
+    
+    @classmethod
+    def get_button_width(cls):
+        return cls._get_value("BUTTON_WIDTH")
+    
+    @classmethod
+    def get_button_height(cls):
+        return cls._get_value("BUTTON_HEIGHT")
+    
+    @classmethod
+    def get_next_button_width(cls):
+        return cls._get_value("NEXT_BUTTON_WIDTH")
+    
+    @classmethod
+    def get_next_button_height(cls):
+        return cls._get_value("NEXT_BUTTON_HEIGHT")
+    
+    @classmethod
+    def get_next_button_padding(cls):
+        return cls._get_value("NEXT_BUTTON_PADDING")
+    
+    # ============= LEGACY COMPATIBILITY =============
+    # Keep these for backward compatibility with existing code
+    
+    @classmethod
+    @property
+    def WINDOW_WIDTH(cls):
+        return cls.get_window_width()
+    
+    @classmethod
+    @property  
+    def WINDOW_HEIGHT(cls):
+        return cls.get_window_height()
+    
+    @classmethod
+    @property
+    def FRAME_PADDING_X(cls):
+        return cls.get_frame_padding_x()
+    
+    @classmethod
+    @property
+    def FRAME_PADDING_Y(cls):
+        return cls.get_frame_padding_y()
+    
+    @classmethod
+    @property
+    def FRAME_BORDER_WIDTH(cls):
+        return cls.get_frame_border_width()
+    
+    @classmethod
+    @property
+    def CUSTOMER_SECTION_WIDTH(cls):
+        return cls.get_customer_section_width()
+    
+    @classmethod
+    @property
+    def CUSTOMER_SECTION_HEIGHT(cls):
+        return cls.get_customer_section_height()
+    
+    @classmethod
+    @property
+    def CUSTOMER_FIELD_WIDTH(cls):
+        return cls.get_customer_field_width()
+    
+    @classmethod
+    @property
+    def CUSTOMER_ADDRESS_HEIGHT(cls):
+        return cls.get_customer_address_height()
+    
+    @classmethod
+    @property
+    def DIMENSIONS_SECTION_WIDTH(cls):
+        return cls.get_dimensions_section_width()
+    
+    @classmethod
+    @property
+    def DIMENSIONS_SECTION_HEIGHT(cls):
+        return cls.get_dimensions_section_height()
+    
+    @classmethod
+    @property
+    def DIMENSIONS_FIELD_WIDTH(cls):
+        return cls.get_dimensions_field_width()
+    
+    @classmethod
+    @property
+    def COST_FIELD_WIDTH(cls):
+        return cls.get_cost_field_width()
+    
+    @classmethod
+    @property
+    def CALCULATE_BUTTON_WIDTH(cls):
+        return cls.get_calculate_button_width()
+    
+    @classmethod
+    @property
+    def SPECS_CANVAS_WIDTH(cls):
+        return cls.get_specs_canvas_width()
+    
+    @classmethod
+    @property
+    def SPECS_CANVAS_HEIGHT(cls):
+        return cls.get_specs_canvas_height()
+    
+    @classmethod
+    @property
+    def SPECS_SCROLL_WIDTH(cls):
+        return cls.get_specs_scroll_width()
+    
+    @classmethod
+    @property
+    def SPECS_SCROLL_HEIGHT(cls):
+        return cls.get_specs_scroll_height()
+    
+    @classmethod
+    @property
+    def SPECS_LABEL_COLUMN_WIDTH(cls):
+        return cls.get_specs_label_column_width()
+    
+    @classmethod
+    @property
+    def SPECS_ENTRY_COLUMN_WIDTH(cls):
+        return cls.get_specs_entry_column_width()
+    
+    @classmethod
+    @property
+    def SPECS_IMAGE_COLUMN_WIDTH(cls):
+        return cls.get_specs_image_column_width()
+    
+    @classmethod
+    @property
+    def PRODUCT_IMAGE_WIDTH(cls):
+        return cls.get_product_image_width()
+    
+    @classmethod
+    @property
+    def PRODUCT_IMAGE_HEIGHT(cls):
+        return cls.get_product_image_height()
+    
+    @classmethod
+    @property
+    def DROPDOWN_WIDTH(cls):
+        return cls.get_dropdown_width()
+    
+    @classmethod
+    @property
+    def ENTRY_FIELD_WIDTH(cls):
+        return cls.get_entry_field_width()
+    
+    @classmethod
+    @property
+    def BUTTON_WIDTH(cls):
+        return cls.get_button_width()
+    
+    @classmethod
+    @property
+    def BUTTON_HEIGHT(cls):
+        return cls.get_button_height()
+    
+    @classmethod
+    @property
+    def NEXT_BUTTON_WIDTH(cls):
+        return cls.get_next_button_width()
+    
+    @classmethod
+    @property
+    def NEXT_BUTTON_HEIGHT(cls):
+        return cls.get_next_button_height()
+    
+    @classmethod
+    @property
+    def NEXT_BUTTON_PADDING(cls):
+        return cls.get_next_button_padding()
+    
+    @classmethod
+    def get_scroll_region(cls):
+        """Get scroll region tuple"""
+        responsive = cls._get_responsive_config()
+        scroll_width = responsive.get_window_width(1000)
+        scroll_height = int(800 * responsive.scale_factor)
+        return (0, 0, scroll_width, scroll_height)
+    
+    @classmethod
+    def get_responsive_font(cls, size="medium", weight="normal"):
+        """Get responsive font tuple"""
+        responsive = cls._get_responsive_config()
+        return responsive.get_font_tuple(size, weight)
+    
+    @classmethod
+    def print_debug_info(cls):
+        """Print responsive configuration debug information"""
+        responsive = cls._get_responsive_config()
+        responsive.print_screen_info()
+        
+        print("\n=== Product Frame Responsive Values ===")
+        config = cls._get_config()
+        for key, value in config.items():
+            print(f"{key}: {value}")
+        print("========================================")
 
 
 class BaseProductFrame(tk.Frame):
@@ -21,10 +394,14 @@ class BaseProductFrame(tk.Frame):
         # After ID for search debouncing
         self._after_id = None
         
+        # Center the window on screen
+        self.center_window()
+        
         # Legacy frame references
         self.frame0 = None  # Dimensions and cost (middle)
         self.frame1 = None  # Scrollable specifications (bottom)  
         self.frame2 = None  # Customer details (top)
+        self.frame_next = None  # Next button frame (fixed position)
         
         # Cost calculation widgets
         self.totSqftEnt = None
@@ -47,78 +424,113 @@ class BaseProductFrame(tk.Frame):
         
         # This will be populated by child classes
         self.create_specifications()
+        
+        # Next button will be added by child classes calling add_next_button()
+
+    def center_window(self):
+        """Center the window on screen with unified responsive centering"""
+        # Get responsive configuration
+        responsive = ProductFrameConfig._get_responsive_config()
+        
+        # Use unified centering system for consistent positioning
+        responsive.center_product_window(self.parent)
 
     def create_legacy_layout(self):
-        """Create the exact 3-frame layout structure from legacy"""
+        """Create the exact 3-frame layout structure from legacy with responsive dimensions"""
+        # Get responsive configuration
+        responsive = ProductFrameConfig._get_responsive_config()
+        
         # Frame 2: Customer Details (top) - row 0
-        self.frame2 = tk.LabelFrame(self.parent, borderwidth=2)
-        self.frame2.grid(column=0, row=0, padx=5, pady=5, sticky="ew")
+        self.frame2 = tk.LabelFrame(
+            self.parent, 
+            borderwidth=responsive.get_border_width(),
+            width=responsive.get_window_width(1000),
+            height=int(120 * responsive.scale_factor)
+        )
+        self.frame2.grid(column=0, row=0, padx=responsive.get_padding("small"), pady=responsive.get_padding("small"), sticky="ew")
+        self.frame2.grid_propagate(False)  # Maintain fixed dimensions
         
         # Frame 0: Dimensions & Cost (middle) - row 1  
-        self.frame0 = tk.LabelFrame(self.parent, borderwidth=2)
-        self.frame0.grid(column=0, row=1, padx=5, pady=5, columnspan=4, sticky="W")
+        self.frame0 = tk.LabelFrame(
+            self.parent, 
+            borderwidth=responsive.get_border_width(),
+            width=responsive.get_window_width(1000),
+            height=int(150 * responsive.scale_factor)
+        )
+        self.frame0.grid(column=0, row=1, padx=responsive.get_padding("small"), pady=responsive.get_padding("small"), columnspan=4, sticky="W")
+        self.frame0.grid_propagate(False)  # Maintain fixed dimensions
         
         # Frame Canvas: Container for scrollable specifications (bottom) - row 2
-        self.frame_canvas = tk.Frame(self.parent, borderwidth=2)
-        self.frame_canvas.grid(row=2, column=0, columnspan=3, pady=(5, 0), sticky="nw")
+        self.frame_canvas = tk.Frame(self.parent, borderwidth=responsive.get_border_width())
+        self.frame_canvas.grid(row=2, column=0, columnspan=3, pady=(responsive.get_padding("small"), 0), sticky="ew")
         self.frame_canvas.grid_rowconfigure(0, weight=1)
         self.frame_canvas.grid_columnconfigure(0, weight=1)
         self.frame_canvas.grid_propagate(False)
+        
+        # Frame for Next button (bottom) - row 3 - Fixed position below specifications
+        self.frame_next = tk.Frame(self.parent)
+        self.frame_next.grid(row=3, column=0, columnspan=3, pady=responsive.get_padding("medium"), sticky="ew")
 
     def create_customer_details(self):
-        """Create customer details section exactly as legacy"""
+        """Create customer details section exactly as legacy with responsive sizing"""
+        # Get responsive configuration
+        responsive = ProductFrameConfig._get_responsive_config()
+        
         custDetails = ttk.Label(
-            self.frame2, text="Customer Details", font=("", 10, "bold")
+            self.frame2, text="Customer Details", font=responsive.get_font_tuple("medium", "bold")
         )
-        custDetails.grid(column=0, row=0, padx=10, pady=10, sticky="W")
+        custDetails.grid(column=0, row=0, padx=5, pady=10, sticky="W")
 
         # Customer name
         custNamLab = ttk.Label(self.frame2, text="Customer Name")
-        custNamLab.grid(column=0, row=1, padx=10, pady=10, sticky="W")
+        custNamLab.grid(column=0, row=1, padx=5, pady=10, sticky="W")
         custNamEnt = tk.Entry(
             self.frame2,
             textvariable=self.global_state.custNamVar,
-            font=("", 10, ""),
+            font=responsive.get_font_tuple("medium"),
             relief="solid",
-            width=24,
+            width=responsive.get_entry_width("standard"),
             state="disabled",
         )
-        custNamEnt.grid(column=1, row=1, padx=10, pady=10, sticky="W")
+        custNamEnt.grid(column=1, row=1, padx=5, pady=10, sticky="W")
 
         # Customer address
         custAddLab = ttk.Label(self.frame2, text="Customer Address")
-        custAddLab.grid(column=2, row=1, padx=10, pady=10, sticky="W")
+        custAddLab.grid(column=2, row=1, padx=5, pady=10, sticky="W")
         custAddEnt = tk.Text(
             self.frame2,
-            font=("", 10, ""),
+            font=responsive.get_font_tuple("medium"),
             relief="solid",
-            height=3,
-            width=24,
+            height=2,  # Keep as lines
+            width=responsive.get_entry_width("standard"),
             background="#f0f0f0",
             foreground="#6d6d6d",
         )
-        custAddEnt.grid(column=3, row=1, padx=10, pady=10, sticky="W")
+        custAddEnt.grid(column=3, row=1, padx=5, pady=10, sticky="W")
         custAddEnt.insert(1.0, self.global_state.address)
         custAddEnt.config(state=tk.DISABLED)
 
         # Customer contact
         custConLab = ttk.Label(self.frame2, text="Customer Contact No.")
-        custConLab.grid(column=4, row=1, padx=10, pady=10, sticky="W")
+        custConLab.grid(column=4, row=1, padx=5, pady=10, sticky="W")
         custConEnt = tk.Entry(
             self.frame2,
             textvariable=self.global_state.custConVar,
-            font=("", 10, ""),
+            font=responsive.get_font_tuple("medium"),
             relief="solid",
-            width=24,
+            width=responsive.get_entry_width("standard"),
             state="disabled",
         )
-        custConEnt.grid(column=5, row=1, padx=10, pady=10, sticky="W")
+        custConEnt.grid(column=5, row=1, padx=5, pady=10, sticky="W")
 
     def create_dimensions_section(self):
-        """Create dimensions and cost calculation section exactly as legacy"""
+        """Create dimensions and cost calculation section exactly as legacy with responsive sizing"""
+        # Get responsive configuration
+        responsive = ProductFrameConfig._get_responsive_config()
+        
         # Product type label
         selectWinLabel = ttk.Label(
-            self.frame0, text=self.parent.title(), font=("", 10, "bold")
+            self.frame0, text=self.parent.title(), font=responsive.get_font_tuple("medium", "bold")
         )
         selectWinLabel.grid(column=0, row=0, padx=10, pady=10, sticky="W")
 
@@ -126,7 +538,7 @@ class BaseProductFrame(tk.Frame):
         widthLabel = ttk.Label(self.frame0, text="Enter Width (ft)")
         widthLabel.grid(column=0, row=1, padx=10, pady=10, sticky="W")
         enterWidth = tk.Entry(
-            self.frame0, textvariable=self.global_state.Width, relief="solid", width=33, state="disabled"
+            self.frame0, textvariable=self.global_state.Width, relief="solid", width=responsive.get_entry_width("large"), state="disabled"
         )
         enterWidth.grid(column=1, row=1, padx=10, pady=10, sticky="W")
 
@@ -134,7 +546,7 @@ class BaseProductFrame(tk.Frame):
         heightLabel = ttk.Label(self.frame0, text="Enter Height (ft)")
         heightLabel.grid(column=0, row=2, padx=10, pady=10, sticky="W")
         enterHeight = tk.Entry(
-            self.frame0, textvariable=self.global_state.Height, relief="solid", width=33, state="disabled"
+            self.frame0, textvariable=self.global_state.Height, relief="solid", width=responsive.get_entry_width("large"), state="disabled"
         )
         enterHeight.grid(column=1, row=2, padx=10, pady=10, sticky="W")
 
@@ -145,7 +557,7 @@ class BaseProductFrame(tk.Frame):
             self.frame0,
             textvariable=self.global_state.totSqftEntVar,
             relief="solid",
-            width=28,
+            width=responsive.get_entry_width("standard"),
             state="disabled",
         )
         self.totSqftEnt.grid(column=3, row=1, padx=10, pady=10, sticky="W")
@@ -154,7 +566,7 @@ class BaseProductFrame(tk.Frame):
         cost = ttk.Label(self.frame0, text="Enter Cost (Cost per Sq.Ft)")
         cost.grid(column=2, row=2, padx=10, pady=10, sticky="W")
         self.costEnt = tk.Entry(
-            self.frame0, textvariable=self.global_state.costEntVar, relief="solid", width=28
+            self.frame0, textvariable=self.global_state.costEntVar, relief="solid", width=responsive.get_entry_width("standard")
         )
         self.costEnt.grid(column=3, row=2, padx=10, pady=10, sticky="W")
 
@@ -165,19 +577,22 @@ class BaseProductFrame(tk.Frame):
             self.frame0,
             textvariable=self.global_state.cstAmtInr,
             relief="solid",
-            width=28,
+            width=responsive.get_entry_width("standard"),
             state="disabled",
         )
         self.costTot.grid(column=5, row=1, padx=10, pady=10, sticky="W")
 
         # Calculate button
         calculate = tk.Button(
-            self.frame0, text="Calculate", width=34, command=self.calculate_cost
+            self.frame0, text="Calculate", width=responsive.get_button_width("large"), command=self.calculate_cost
         )
         calculate.grid(column=4, row=2, padx=10, pady=15, sticky="w", columnspan=2)
 
     def create_scrollable_specifications(self):
-        """Create scrollable canvas area for specifications exactly as legacy"""
+        """Create scrollable canvas area for specifications exactly as legacy with responsive sizing"""
+        # Get responsive configuration
+        responsive = ProductFrameConfig._get_responsive_config()
+        
         # Create canvas with scrollbar
         self.canvas = tk.Canvas(self.frame_canvas)
         self.canvas.grid(row=0, column=0, sticky="news")
@@ -186,18 +601,49 @@ class BaseProductFrame(tk.Frame):
         vsb.grid(row=0, column=1, sticky="ns")
         self.canvas.configure(yscrollcommand=vsb.set)
 
-        # Create frame inside canvas for specifications
-        self.frame_buttons = tk.LabelFrame(self.canvas, borderwidth=2, padx=5)
+        # Create frame inside canvas for specifications with proper grid configuration
+        self.frame_buttons = tk.LabelFrame(self.canvas, borderwidth=responsive.get_border_width(), padx=5)
         self.frame_buttons.grid(column=0, row=2, padx=5, pady=5)
         self.canvas.create_window((0, 0), window=self.frame_buttons, anchor="nw")
+        
+        # Configure grid columns for proper alignment with responsive widths
+        self.frame_buttons.grid_columnconfigure(0, weight=0, minsize=int(100 * responsive.scale_factor))  # Label column
+        self.frame_buttons.grid_columnconfigure(1, weight=0, minsize=int(150 * responsive.scale_factor))  # Entry column
+        self.frame_buttons.grid_columnconfigure(2, weight=1, minsize=int(800 * responsive.scale_factor))  # Image column
         
         # Set frame1 to the scrollable frame for specifications
         self.frame1 = self.frame_buttons
         
-        # Configure canvas size exactly as legacy
+        # Bind mouse wheel events for scrolling
+        self.canvas.bind("<MouseWheel>", self._on_mousewheel)
+        self.canvas.bind("<Button-4>", self._on_mousewheel)
+        self.canvas.bind("<Button-5>", self._on_mousewheel)
+        
+        # Bind mouse wheel to frame_canvas to catch events when mouse is over the scroll area
+        self.frame_canvas.bind("<MouseWheel>", self._on_mousewheel)
+        self.frame_canvas.bind("<Button-4>", self._on_mousewheel)
+        self.frame_canvas.bind("<Button-5>", self._on_mousewheel)
+        
+        # Make sure the canvas can receive focus for mouse events
+        self.canvas.focus_set()
+        
+        # Bind mouse wheel to parent window so scrolling works anywhere in the window
+        self.parent.bind("<MouseWheel>", self._on_mousewheel)
+        self.parent.bind("<Button-4>", self._on_mousewheel)
+        self.parent.bind("<Button-5>", self._on_mousewheel)
+        
+        # Configure canvas size using responsive configuration
+        canvas_width = responsive.get_window_width(1000)
+        canvas_height = int(500 * responsive.scale_factor)
+        scroll_width = responsive.get_window_width(1000)
+        scroll_height = int(800 * responsive.scale_factor)
+        
         self.frame_buttons.update_idletasks()
-        self.frame_canvas.config(width=1000, height=500)
-        self.canvas.config(scrollregion=(0, 0, 700, 685))
+        self.frame_canvas.config(width=canvas_width, height=canvas_height)
+        self.canvas.config(scrollregion=(0, 0, scroll_width, scroll_height))
+        
+        # Update scroll region when content changes
+        self.frame_buttons.bind("<Configure>", self._on_frame_configure)
 
     def create_specifications(self):
         """Override this in child classes to add product-specific specifications"""
@@ -211,30 +657,36 @@ class BaseProductFrame(tk.Frame):
         pass
 
     def add_product_image(self, image_filename):
-        """Add large product image to specifications area"""
+        """Add large product image to specifications area with responsive sizing"""
+        # Get responsive configuration
+        responsive = ProductFrameConfig._get_responsive_config()
+        
         try:
             image_path = os.path.join(self.image_dir, image_filename)
             image = Image.open(image_path)
-            resize_image = image.resize((600, 400))  # Exact legacy size
+            
+            # Get responsive image dimensions
+            img_width, img_height = responsive.get_image_size(600, 400)
+            resize_image = image.resize((img_width, img_height))
             self.product_image = ImageTk.PhotoImage(resize_image)
             
             imgLab = tk.Label(self.frame1, image=self.product_image)
             imgLab.image = self.product_image  # Keep a reference
-            imgLab.grid(column=2, row=1, rowspan=15, padx=10, pady=10)
+            imgLab.grid(column=2, row=1, rowspan=15, sticky="w")
             
-            # Product title below image
+            # Product title below image with responsive font
             selectWinLabel = ttk.Label(
-                self.frame1, text=self.parent.title(), font=("", 20, "bold")
+                self.frame1, text=self.parent.title(), font=responsive.get_font_tuple("header", "bold")
             )
-            selectWinLabel.grid(column=2, row=16, padx=10, pady=5)
+            selectWinLabel.grid(column=2, row=16, sticky="wn")
             
-            # Disclaimer text
+            # Disclaimer text with responsive font
             selectWinLabel = ttk.Label(
                 self.frame1,
                 text="(This is an Illustration, not actual product)",
-                font=("", 10, ""),
+                font=responsive.get_font_tuple("small"),
             )
-            selectWinLabel.grid(column=2, row=17, padx=10, pady=5)
+            selectWinLabel.grid(column=2, row=17, sticky="wn")
             
         except FileNotFoundError:
             print(f"Product image not found: {image_path}")
@@ -383,17 +835,65 @@ class BaseProductFrame(tk.Frame):
         for name, var in spec_vars.items():
             item_data[name] = var.get()
 
+        # Enhanced cost data to ensure proper cart synchronization
+        try:
+            # Get the calculated values from global state
+            width = float(self.global_state.Width.get()) if self.global_state.Width.get() else 0
+            height = float(self.global_state.Height.get()) if self.global_state.Height.get() else 0
+            total_sqft = width * height
+            cost_per_sqft = float(self.global_state.costEntVar.get()) if self.global_state.costEntVar.get() else 0
+            
+            # Calculate the total cost to ensure consistency
+            total_cost = total_sqft * cost_per_sqft
+            
+            # Override the cost data with calculated values for proper cart display
+            item_data.update({
+                "Total Sq.ft": total_sqft,
+                "Cost (INR)": cost_per_sqft,  # Cost per sq.ft
+                "Amount": total_cost,  # Total cost for this item
+                "Quantity": 1,  # Default quantity
+            })
+            
+            print(f"Adding to cart - Cost per sq.ft: ₹{cost_per_sqft}, Total cost: ₹{total_cost}")
+            
+        except (ValueError, TypeError) as e:
+            print(f"Error processing cost data: {e}")
+            # Fall back to original data if calculation fails
+
         self.data_manager.add_item_to_cart(item_data)
         messagebox.showinfo("Success", f"{item_data['windowTypeVar']} added to cart.", parent=self.parent)
         self.parent.destroy()  # Close the Toplevel window
 
+    def _on_mousewheel(self, event):
+        """Handle mouse wheel scrolling for specifications section"""
+        # Cross-platform mouse wheel handling
+        if event.delta:
+            # Windows and MacOS
+            delta = -1 if event.delta > 0 else 1
+        else:
+            # Linux
+            delta = -1 if event.num == 4 else 1
+        
+        self.canvas.yview_scroll(delta, "units")
+        
+    def _on_frame_configure(self, event):
+        """Update scroll region when frame content changes"""
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        
     def add_next_button(self):
-        """Add Next button exactly as legacy"""
+        """Add Next button in fixed position below specifications section with responsive sizing"""
+        # Get responsive configuration
+        responsive = ProductFrameConfig._get_responsive_config()
+        
         nextButt = tk.Button(
-            self.frame1, 
-            text="Next", 
-            font=("", 10, "bold"), 
-            width=24, 
-            command=self.add_to_cart
+            self.frame_next, 
+            text="Add to Cart", 
+            font=responsive.get_font_tuple("large", "bold"), 
+            width=responsive.get_button_width("standard"), 
+            command=self.add_to_cart,
+            bg="#4CAF50",
+            fg="white",
+            relief="flat",
+            pady=2  # Keep as lines
         )
-        nextButt.grid(column=1, row=18, padx=10, pady=15, sticky="W") 
+        nextButt.pack(pady=responsive.get_padding("medium")) 

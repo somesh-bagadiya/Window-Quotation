@@ -17,12 +17,12 @@ class CalculatorView(tk.Toplevel):
         
         self.title("Calculation")
         
-        # Set window position exactly as legacy
-        screen_width = parent.winfo_screenwidth()
-        screen_height = parent.winfo_screenheight()
-        x = (screen_width - (screen_width / 2.8)) / 2 + 30
-        y = ((screen_height / 1.5)) / 2
-        self.geometry("+%d+%d" % (x, y))
+        # Center the window with unified responsive centering
+        from ui.responsive_config import get_responsive_config
+        responsive = get_responsive_config()
+        
+        # Use unified centering system for consistent positioning
+        responsive.center_calculator_window(self)
         
         self.attributes("-topmost", True)
 

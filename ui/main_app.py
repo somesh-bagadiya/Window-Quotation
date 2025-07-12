@@ -22,7 +22,6 @@ from ui.product_frames import (
     ExhaustFanWindowFrame,
 )
 from ui.cart_view import CartView
-from ui.calculator_view import CalculatorView
 
 
 class MainApplication:
@@ -72,12 +71,27 @@ class MainApplication:
         menubar.add_cascade(label="Menu", menu=file_menu)
 
     def create_widgets(self):
-        """Create main window layout with professional styling"""
+        """Create main window layout with responsive styling"""
+        # Import responsive config
+        from ui.responsive_config import get_responsive_config
+        responsive = get_responsive_config(self.parent)
+        
         # Configure professional theme for the application
         UITheme.configure_ttk_styles(self.parent)
         
-        # Set main window background
+        # Set main window background and center/maximize with unified system
         self.parent.configure(bg=UITheme.BACKGROUND_WHITE)
+        responsive.center_main_window(self.parent)
+        
+        # Configure grid weights to center content in fullscreen window
+        self.parent.grid_columnconfigure(0, weight=1)  # Left padding
+        self.parent.grid_columnconfigure(1, weight=0)  # Left content column
+        self.parent.grid_columnconfigure(2, weight=0)  # Right content column  
+        self.parent.grid_columnconfigure(3, weight=1)  # Right padding
+        self.parent.grid_rowconfigure(0, weight=1)     # Top padding
+        self.parent.grid_rowconfigure(1, weight=0)     # Customer details row
+        self.parent.grid_rowconfigure(2, weight=0)     # Window details row
+        self.parent.grid_rowconfigure(3, weight=1)     # Bottom padding
         
         # Create frame labels with professional styling
         custDetails = ttk.Label(
@@ -91,127 +105,171 @@ class MainApplication:
             style="Header.TLabel"
         )
         
-        # Create frames with professional styling
-        frame0 = tk.LabelFrame(self.parent, labelwidget=custDetails)
+        # Get responsive frame dimensions
+        frame_width = responsive.get_main_frame_width()
+        customer_height = responsive.get_main_frame_height("customer")
+        window_height = responsive.get_main_frame_height("window")
+        
+        # Create frames with responsive styling - centered
+        frame0 = tk.LabelFrame(self.parent, labelwidget=custDetails, width=frame_width, height=customer_height)
         UITheme.apply_theme_to_widget(frame0, "labelframe")
-        frame0.grid(column=0, row=0, padx=UITheme.PADDING_MEDIUM, pady=UITheme.PADDING_MEDIUM, sticky="W")
+        frame0.grid(column=1, row=1, padx=responsive.get_padding("medium"), pady=responsive.get_padding("medium"), sticky="NW")
+        frame0.grid_propagate(False)  # Maintain fixed dimensions
         
-        frame1 = tk.LabelFrame(self.parent, labelwidget=windDetails)
+        frame1 = tk.LabelFrame(self.parent, labelwidget=windDetails, width=frame_width, height=window_height)
         UITheme.apply_theme_to_widget(frame1, "labelframe") 
-        frame1.grid(column=0, row=1, padx=UITheme.PADDING_MEDIUM, pady=UITheme.PADDING_MEDIUM, sticky="W")
+        frame1.grid(column=1, row=2, padx=responsive.get_padding("medium"), pady=responsive.get_padding("medium"), sticky="NW")
+        frame1.grid_propagate(False)  # Maintain fixed dimensions
         
-        frame2 = tk.LabelFrame(self.parent)
+        # Create a container frame for the logo area and cart button - centered
+        self.right_container = tk.Frame(self.parent, bg=UITheme.BACKGROUND_WHITE)
+        self.right_container.grid(column=2, row=1, padx=responsive.get_padding("medium"), pady=responsive.get_padding("medium"), sticky="NSEW", rowspan=2)
+        self.right_container.grid_columnconfigure(0, weight=1)
+        self.right_container.grid_rowconfigure(1, weight=1)
+        
+        # Create a single container for both test and cart buttons
+        button_container = tk.Frame(self.right_container, bg=UITheme.BACKGROUND_WHITE)
+        button_container.grid(column=0, row=0, sticky="EW", padx=responsive.get_padding("medium"), pady=responsive.get_padding("medium"))
+        button_container.grid_columnconfigure(0, weight=1)  # Allow expansion
+        
+        # ============= TEST FUNCTIONALITY - COMMENT OUT WHEN NOT NEEDED =============
+        # Create test button with responsive sizing
+        test_button = tk.Button(
+            button_container,
+            text="Fill Test Data",
+            command=self.fill_test_data,
+            width=responsive.get_button_width("standard"),
+            height=2,
+            bg="#FF9800",
+            fg="white",
+            font=responsive.get_font_tuple("medium", "bold"),
+            relief="flat"
+        )
+        test_button.pack(side=tk.LEFT, padx=responsive.get_padding("small"), pady=responsive.get_padding("small"))
+        # ============= END TEST FUNCTIONALITY =============
+        
+        # Create cart button container on the right side
+        cart_container = tk.Frame(button_container, bg=UITheme.BACKGROUND_WHITE)
+        cart_container.pack(side=tk.RIGHT, padx=responsive.get_padding("small"), pady=responsive.get_padding("small"))
+        
+        # Create logo container below cart button
+        frame2 = tk.LabelFrame(self.right_container, bg=UITheme.BACKGROUND_WHITE)
         UITheme.apply_theme_to_widget(frame2, "labelframe")
-        frame2.grid(column=1, row=0, padx=UITheme.PADDING_MEDIUM, pady=UITheme.PADDING_MEDIUM, sticky="W", rowspan=2)
+        frame2.grid(column=0, row=1, sticky="NSEW", padx=responsive.get_padding("medium"), pady=responsive.get_padding("medium"))
 
         # Store frame references
         self.frame0 = frame0  # Customer details
         self.frame1 = frame1  # Window details  
         self.frame2 = frame2  # Logo area
+        self.cart_container = cart_container  # Cart button container
+        self.button_container = button_container  # Button container
 
-        # Create logo area with professional styling
-        self.create_logo_area()
+        # Create logo area with responsive styling
+        self.create_logo_area(responsive)
         
-        # Create cart button with professional styling
-        self.create_cart_button()
+        # Create cart button with responsive styling
+        self.create_cart_button(responsive)
         
-        # Create customer details section with professional styling
-        self.create_customer_details()
+        # Create customer details section with responsive styling
+        self.create_customer_details(responsive)
         
-        # Create window details section with professional styling
-        self.create_window_details()
+        # Create window details section with responsive styling
+        self.create_window_details(responsive)
 
-    def create_logo_area(self):
-        """Create logo area exactly as legacy"""
-        canvas = tk.Canvas(self.frame2)
+    def create_logo_area(self, responsive):
+        """Create logo area with responsive sizing"""
+        canvas = tk.Canvas(self.frame2, bg=UITheme.BACKGROUND_WHITE)
         try:
             logo_path = os.path.join(self.image_dir, "MGA_1.png")
             img = Image.open(logo_path)
-            resized_image = img.resize((360, 250), Image.LANCZOS)
+            
+            # Get responsive logo dimensions
+            logo_width, logo_height = responsive.get_image_size(360, 250)
+            resized_image = img.resize((logo_width, logo_height), Image.LANCZOS)
             self.logo_image = ImageTk.PhotoImage(resized_image)
-            canvas.create_image(190, 135, image=self.logo_image)
-            canvas.grid(column=0, row=0, rowspan=2)
+            
+            canvas.create_image(logo_width//2, logo_height//2, image=self.logo_image)
+            canvas.configure(width=logo_width, height=logo_height)
+            canvas.pack(expand=True, fill=tk.BOTH, padx=responsive.get_padding("medium"), pady=responsive.get_padding("medium"))
         except FileNotFoundError:
             print(f"Logo image not found at {logo_path}")
             # Add placeholder
-            placeholder = ttk.Label(self.frame2, text="MGA Logo")
-            placeholder.grid(column=0, row=0, rowspan=2, padx=20, pady=20)
+            placeholder = ttk.Label(self.frame2, text="MGA Logo", style="Header.TLabel")
+            placeholder.pack(expand=True, fill=tk.BOTH, padx=20, pady=20)
 
-    def create_cart_button(self):
-        """Create cart button with professional styling"""
-        try:
-            cart_icon_path = os.path.join(self.image_dir, "CartIcon.png")
-            cart = Image.open(cart_icon_path)
-            carImg = cart.resize((20, 17), Image.LANCZOS)
-            self.cart_icon = ImageTk.PhotoImage(carImg)
-            
-            cartButt = tk.Button(
-                self.parent,
-                text=" Cart ",
-                command=self.open_cart_view,
-                image=self.cart_icon,
-                compound=tk.RIGHT,
-                width=UITheme.BUTTON_WIDTH_STANDARD
-            )
-            UITheme.apply_theme_to_widget(cartButt, "button", button_type="primary")
-            cartButt.grid(column=1, row=0, padx=UITheme.PADDING_MEDIUM, pady=UITheme.PADDING_LARGE, sticky="NE")
-            
-        except FileNotFoundError:
-            print(f"Cart icon not found at {cart_icon_path}")
-            cartButt = tk.Button(
-                self.parent,
-                text=" Cart ",
-                command=self.open_cart_view,
-                width=UITheme.BUTTON_WIDTH_STANDARD
-            )
-            UITheme.apply_theme_to_widget(cartButt, "button", button_type="primary")
-            cartButt.grid(column=1, row=0, padx=UITheme.PADDING_MEDIUM, pady=UITheme.PADDING_LARGE, sticky="NE")
+    def create_cart_button(self, responsive):
+        """Create cart button with responsive styling"""
+        # Create cart button with explicit dimensions and padding
+        cartButt = tk.Button(
+            self.cart_container,
+            text="🛒 Cart",  # Use emoji instead of icon for simplicity
+            command=self.open_cart_view,
+            width=15,  # Fixed width that should be visible
+            height=2,  # Fixed height that should be visible
+            font=responsive.get_font_tuple("medium", "bold"),
+            bg=UITheme.PRIMARY_BLUE,
+            fg="white",
+            relief="flat",
+            borderwidth=0,
+            activebackground=UITheme.PRIMARY_BLUE_LIGHT,
+            activeforeground="white"
+        )
+        cartButt.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        
+        # Store reference for potential future use
+        self.cart_button = cartButt
 
-    def create_customer_details(self):
-        """Create customer details section with professional styling"""
+    def create_customer_details(self, responsive):
+        """Create customer details section with responsive styling"""
+        # Configure internal grid for consistent alignment
+        self.frame0.grid_columnconfigure(0, weight=0, minsize=int(150 * responsive.scale_factor))  # Label column
+        self.frame0.grid_columnconfigure(1, weight=1, minsize=int(200 * responsive.scale_factor))  # Entry column
+        
         # Customer Name
         custNamLab = ttk.Label(self.frame0, text="Enter Customer Name", style="Professional.TLabel")
-        custNamLab.grid(column=0, row=1, padx=UITheme.PADDING_MEDIUM, pady=UITheme.PADDING_MEDIUM, sticky="W")
+        custNamLab.grid(column=0, row=1, padx=responsive.get_padding("medium"), pady=responsive.get_padding("medium"), sticky="W")
         
         custNamEnt = tk.Entry(
             self.frame0, 
             textvariable=self.global_state.custNamVar, 
-            width=UITheme.ENTRY_WIDTH_STANDARD
+            width=responsive.get_entry_width("standard"),
+            font=responsive.get_font_tuple("medium")
         )
         UITheme.apply_theme_to_widget(custNamEnt, "entry")
-        custNamEnt.grid(column=1, row=1, padx=UITheme.PADDING_MEDIUM, pady=UITheme.PADDING_MEDIUM, sticky="W")
+        custNamEnt.grid(column=1, row=1, padx=responsive.get_padding("medium"), pady=responsive.get_padding("medium"), sticky="W")
 
-        # Customer Address (Text widget with professional styling)
+        # Customer Address (Text widget with responsive styling)
         custAddLab = ttk.Label(self.frame0, text="Enter Customer Address", style="Professional.TLabel")
-        custAddLab.grid(column=0, row=2, padx=UITheme.PADDING_MEDIUM, pady=UITheme.PADDING_MEDIUM, sticky="W")
+        custAddLab.grid(column=0, row=2, padx=responsive.get_padding("medium"), pady=responsive.get_padding("medium"), sticky="W")
         
         self.custAddEnt = tk.Text(
             self.frame0, 
             height=3, 
-            width=UITheme.ENTRY_WIDTH_STANDARD,
+            width=responsive.get_entry_width("standard"),
             bg=UITheme.BACKGROUND_WHITE,
             fg=UITheme.TEXT_DARK,
-            font=UITheme.get_body_font(),
+            font=responsive.get_font_tuple("medium"),
             relief="solid",
             borderwidth=1,
             insertbackground=UITheme.TEXT_DARK
         )
-        self.custAddEnt.grid(column=1, row=2, padx=UITheme.PADDING_MEDIUM, pady=UITheme.PADDING_MEDIUM, sticky="W")
+        self.custAddEnt.grid(column=1, row=2, padx=responsive.get_padding("medium"), pady=responsive.get_padding("medium"), sticky="W")
         
         # Bind text widget to update global state
         self.custAddEnt.bind('<KeyRelease>', self.update_address)
 
         # Customer Contact
         custConLab = ttk.Label(self.frame0, text="Enter Customer Contact No.", style="Professional.TLabel")
-        custConLab.grid(column=0, row=3, padx=UITheme.PADDING_MEDIUM, pady=UITheme.PADDING_MEDIUM, sticky="W")
+        custConLab.grid(column=0, row=3, padx=responsive.get_padding("medium"), pady=responsive.get_padding("medium"), sticky="W")
         
         custConEnt = tk.Entry(
             self.frame0, 
             textvariable=self.global_state.custConVar,
-            width=UITheme.ENTRY_WIDTH_STANDARD
+            width=responsive.get_entry_width("standard"),
+            font=responsive.get_font_tuple("medium")
         )
         UITheme.apply_theme_to_widget(custConEnt, "entry")
-        custConEnt.grid(column=1, row=3, padx=UITheme.PADDING_MEDIUM, pady=UITheme.PADDING_MEDIUM, sticky="W")
+        custConEnt.grid(column=1, row=3, padx=responsive.get_padding("medium"), pady=responsive.get_padding("medium"), sticky="W")
 
     def update_address(self, event=None):
         """Update global state address from text widget"""
@@ -219,56 +277,64 @@ class MainApplication:
         self.global_state.custAddVar.set(address_text)
         self.global_state.address = address_text
 
-    def create_window_details(self):
-        """Create window details section with professional styling"""
+    def create_window_details(self, responsive):
+        """Create window details section with responsive styling"""
+        # Configure internal grid for consistent alignment
+        self.frame1.grid_columnconfigure(0, weight=0, minsize=int(150 * responsive.scale_factor))  # Label column
+        self.frame1.grid_columnconfigure(1, weight=1, minsize=int(200 * responsive.scale_factor))  # Entry column
+        
         # Window Type Selection
         selectWinLabel = ttk.Label(self.frame1, text="Select Window Type", style="Professional.TLabel")
-        selectWinLabel.grid(column=0, row=5, padx=UITheme.PADDING_MEDIUM, pady=UITheme.PADDING_MEDIUM, sticky="W")
+        selectWinLabel.grid(column=0, row=5, padx=responsive.get_padding("medium"), pady=responsive.get_padding("medium"), sticky="W")
         
         selectWinDrop = ttk.Combobox(
             self.frame1, 
             state="readonly", 
             textvariable=self.global_state.windowTypeVar, 
-            width=UITheme.ENTRY_WIDTH_STANDARD,
-            style="Professional.TCombobox"
+            width=responsive.get_entry_width("standard"),
+            style="Professional.TCombobox",
+            font=responsive.get_font_tuple("medium")
         )
         selectWinDrop["values"] = self.global_state.window_options
-        selectWinDrop.grid(column=1, row=5, padx=UITheme.PADDING_MEDIUM, pady=UITheme.PADDING_MEDIUM, sticky="W")
+        selectWinDrop.grid(column=1, row=5, padx=responsive.get_padding("medium"), pady=responsive.get_padding("medium"), sticky="W")
         selectWinDrop.bind("<<ComboboxSelected>>", lambda e: selectWinLabel.focus())
 
         # Width Entry
         widthLabel = ttk.Label(self.frame1, text="Enter Width (ft)", style="Professional.TLabel")
-        widthLabel.grid(column=0, row=6, padx=UITheme.PADDING_MEDIUM, pady=UITheme.PADDING_MEDIUM, sticky="W")
+        widthLabel.grid(column=0, row=6, padx=responsive.get_padding("medium"), pady=responsive.get_padding("medium"), sticky="W")
         
         enterWidth = tk.Entry(
             self.frame1, 
             textvariable=self.global_state.Width,
-            width=UITheme.ENTRY_WIDTH_STANDARD
+            width=responsive.get_entry_width("standard"),
+            font=responsive.get_font_tuple("medium")
         )
         UITheme.apply_theme_to_widget(enterWidth, "entry")
-        enterWidth.grid(column=1, row=6, padx=UITheme.PADDING_MEDIUM, pady=UITheme.PADDING_MEDIUM, sticky="W")
+        enterWidth.grid(column=1, row=6, padx=responsive.get_padding("medium"), pady=responsive.get_padding("medium"), sticky="W")
 
         # Height Entry
         heightLabel = ttk.Label(self.frame1, text="Enter Height (ft)", style="Professional.TLabel")
-        heightLabel.grid(column=0, row=7, padx=UITheme.PADDING_MEDIUM, pady=UITheme.PADDING_MEDIUM, sticky="W")
+        heightLabel.grid(column=0, row=7, padx=responsive.get_padding("medium"), pady=responsive.get_padding("medium"), sticky="W")
         
         enterHeight = tk.Entry(
             self.frame1, 
             textvariable=self.global_state.Height,
-            width=UITheme.ENTRY_WIDTH_STANDARD
+            width=responsive.get_entry_width("standard"),
+            font=responsive.get_font_tuple("medium")
         )
         UITheme.apply_theme_to_widget(enterHeight, "entry")
-        enterHeight.grid(column=1, row=7, padx=UITheme.PADDING_MEDIUM, pady=UITheme.PADDING_MEDIUM, sticky="W")
+        enterHeight.grid(column=1, row=7, padx=responsive.get_padding("medium"), pady=responsive.get_padding("medium"), sticky="W")
 
-        # Next Button with professional styling
+        # Next Button with responsive styling
         nextButt = tk.Button(
             self.frame1, 
             text="Next", 
-            width=UITheme.BUTTON_WIDTH_STANDARD, 
-            command=self.selector
+            width=responsive.get_button_width("standard"), 
+            command=self.selector,
+            font=responsive.get_font_tuple("medium", "bold")
         )
         UITheme.apply_theme_to_widget(nextButt, "button", button_type="success")
-        nextButt.grid(column=1, row=8, padx=UITheme.PADDING_MEDIUM, pady=UITheme.PADDING_LARGE, sticky="W")
+        nextButt.grid(column=1, row=8, padx=responsive.get_padding("medium"), pady=responsive.get_padding("large"), sticky="W")
         
     def selector(self, event=None):
         """Open product configuration window exactly as legacy selector() function"""
@@ -300,8 +366,10 @@ class MainApplication:
         product_window = tk.Toplevel(self.parent)
         product_window.title(selected_window)
         
-        # Set window size and position - can be adjusted based on product type
-        product_window.geometry("1200x800")
+        # Center product window with unified responsive centering
+        from ui.responsive_config import get_responsive_config
+        responsive = get_responsive_config(self.parent)
+        responsive.center_product_window(product_window)
         
         # Pass the Toplevel window as the parent to the frame
         frame = frame_class(product_window, self.data_manager)
@@ -363,7 +431,26 @@ class MainApplication:
         cart_view = CartView(self.parent, self.data_manager, main_app=self)
         cart_view.grab_set()
 
-    def open_calculator_view(self):
-        """Open calculator view"""
-        calculator_view = CalculatorView(self.parent, self.data_manager)
-        calculator_view.grab_set()
+    # Note: open_calculator_view method removed since calculation is now integrated into cart view
+
+    # ============= TEST FUNCTIONALITY - COMMENT OUT WHEN NOT NEEDED =============
+    def fill_test_data(self):
+        """Fill form with test data for quick testing"""
+        # Customer Details Test Data
+        self.global_state.custNamVar.set("John Doe")
+        self.global_state.custConVar.set("9876543210")
+        
+        # Fill address in text widget
+        test_address = "123 Test Street,\nTest City, Test State\nPIN: 123456"
+        self.custAddEnt.delete("1.0", tk.END)
+        self.custAddEnt.insert("1.0", test_address)
+        self.global_state.custAddVar.set(test_address)
+        self.global_state.address = test_address
+        
+        # Window Details Test Data
+        self.global_state.windowTypeVar.set("Sliding Window")
+        self.global_state.Width.set("10")
+        self.global_state.Height.set("8")
+        
+        print("✓ Test data filled successfully!")
+    # ============= END TEST FUNCTIONALITY =============

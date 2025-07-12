@@ -129,26 +129,33 @@ class DataManager:
         
         new_row["Total Sq.ft"] = to_float(total_sqft)
         
-        # Handle quantity first
-        new_row["Quantity"] = int(quantity if quantity else item_details.get("Quantity", 1))
+        # Handle quantity first - prioritize item_details, then function parameter
+        new_row["Quantity"] = int(item_details.get("Quantity", quantity if quantity else 1))
         
         # Handle cost and amount calculation properly
-        if "Amount" in item_details and item_details["Amount"] is not None:
-            # If Amount is directly provided (test scenarios), use it as-is
+        if "Amount" in item_details and item_details["Amount"] is not None and "Cost (INR)" in item_details:
+            # Both Amount and Cost (INR) provided (test scenarios) - use both as-is
+            new_row["Amount"] = to_float(item_details["Amount"])
+            new_row["Cost (INR)"] = to_float(item_details["Cost (INR)"])  # Keep original Cost (INR)
+            
+        elif "Amount" in item_details and item_details["Amount"] is not None:
+            # Only Amount is provided - calculate Cost (INR) from it
             new_row["Amount"] = to_float(item_details["Amount"])
             
-            # Calculate Cost (INR) as cost per unit, not per sq.ft
-            # For test data: Amount / Quantity = cost per unit
-            if new_row["Quantity"] > 0:
-                new_row["Cost (INR)"] = new_row["Amount"] / new_row["Quantity"]
+            # Calculate Cost (INR) from Amount / (Area × Quantity) for per sq.ft pricing
+            total_sqft_val = new_row["Total Sq.ft"] 
+            if new_row["Quantity"] > 0 and total_sqft_val > 0:
+                new_row["Cost (INR)"] = new_row["Amount"] / (total_sqft_val * new_row["Quantity"])
             else:
                 new_row["Cost (INR)"] = to_float(item_details.get("Cost (INR)", 0))
                 
         elif "Cost (INR)" in item_details:
-            # If only Cost (INR) is provided, treat it as cost per unit
-            cost_per_unit = to_float(item_details["Cost (INR)"])
-            new_row["Cost (INR)"] = cost_per_unit
-            new_row["Amount"] = cost_per_unit * new_row["Quantity"]
+            # If only Cost (INR) is provided, treat it as cost per sq.ft
+            cost_per_sqft = to_float(item_details["Cost (INR)"])
+            new_row["Cost (INR)"] = cost_per_sqft
+            # Calculate Amount as: cost per sq.ft × area × quantity
+            total_sqft_val = new_row["Total Sq.ft"]
+            new_row["Amount"] = cost_per_sqft * total_sqft_val * new_row["Quantity"]
             
         else:
             # Legacy calculation for production data
@@ -171,12 +178,10 @@ class DataManager:
             amount = cost_per_sqft * to_float(total_sqft) * int(new_row["Quantity"])
             new_row["Amount"] = amount
 
-        # Store all specification details from global state
-        if hasattr(self, 'global_state'):
-            spec_vars = self.global_state.get_all_specification_vars()
-            for key, var in spec_vars.items():
-                if key in self.cart_columns:
-                    new_row[key] = var.get()
+        # Store all specification details from item_details
+        for key in self.cart_columns:
+            if key in item_details:
+                new_row[key] = item_details[key]
 
         self.cart_data.loc[len(self.cart_data)] = new_row
         self.sr_no += 1

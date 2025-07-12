@@ -1,20 +1,20 @@
 """
-UI Theme and Styling Module - Professional Appearance
-Defines consistent fonts, colors, and styling for the MGA Window Quotation Application
+UI Theme and Styling Module - Responsive Professional Appearance
+Defines responsive fonts, colors, and styling for the MGA Window Quotation Application
 """
 
 import tkinter as tk
 from tkinter import ttk
 
 class UITheme:
-    """Professional UI theme with consistent styling"""
+    """Professional UI theme with responsive styling"""
     
     # ============= PROFESSIONAL COLOR PALETTE =============
     
     # Primary Colors (Professional Blue Theme)
-    PRIMARY_BLUE = "#1E40AF"        # Primary action color
-    PRIMARY_BLUE_LIGHT = "#3B82F6"  # Hover states
-    PRIMARY_BLUE_DARK = "#1E3A8A"   # Active states
+    PRIMARY_BLUE = "#3B82F6"        # Primary action color (lighter, more appealing)
+    PRIMARY_BLUE_LIGHT = "#60A5FA"  # Hover states (even lighter)
+    PRIMARY_BLUE_DARK = "#2563EB"   # Active states (medium blue)
     
     # Neutral Colors (Professional Grays)
     BACKGROUND_WHITE = "#FFFFFF"     # Main backgrounds
@@ -34,215 +34,196 @@ class UITheme:
     ACCENT_BLUE = "#0EA5E9"          # Links and highlights
     ACCENT_PURPLE = "#8B5CF6"        # Special elements
     
-    # ============= TYPOGRAPHY =============
+    # ============= RESPONSIVE INTEGRATION =============
     
-    # Font Families (fallback chain for cross-platform compatibility)
-    FONT_PRIMARY = ("Segoe UI", "Helvetica Neue", "Arial", "sans-serif")
-    FONT_SECONDARY = ("Consolas", "Monaco", "Courier New", "monospace")
+    @classmethod
+    def get_responsive_config(cls):
+        """Get responsive configuration instance"""
+        try:
+            from ui.responsive_config import get_responsive_config
+            return get_responsive_config()
+        except ImportError:
+            return None
     
-    # Font Sizes
-    FONT_SIZE_LARGE = 12      # Headers and important elements
-    FONT_SIZE_MEDIUM = 10     # Standard UI text
-    FONT_SIZE_SMALL = 9       # Secondary text and captions
+    # ============= RESPONSIVE TYPOGRAPHY =============
     
-    # Font Weights
-    FONT_NORMAL = "normal"
-    FONT_BOLD = "bold"
+    @classmethod
+    def get_header_font(cls):
+        """Get responsive font for headers and section titles"""
+        responsive = cls.get_responsive_config()
+        if responsive:
+            return responsive.get_font_tuple("large", "bold")
+        else:
+            return ("Segoe UI", 12, "bold")
     
-    # ============= SPACING AND SIZING =============
+    @classmethod
+    def get_body_font(cls):
+        """Get responsive font for regular body text"""
+        responsive = cls.get_responsive_config()
+        if responsive:
+            return responsive.get_font_tuple("medium", "normal")
+        else:
+            return ("Segoe UI", 10, "normal")
     
-    # Padding and Margins
-    PADDING_SMALL = 5
-    PADDING_MEDIUM = 10
-    PADDING_LARGE = 15
-    PADDING_XLARGE = 20
+    @classmethod
+    def get_small_font(cls):
+        """Get responsive font for small text and captions"""
+        responsive = cls.get_responsive_config()
+        if responsive:
+            return responsive.get_font_tuple("small", "normal")
+        else:
+            return ("Segoe UI", 9, "normal")
     
-    # Widget Dimensions
-    BUTTON_WIDTH_STANDARD = 20
-    BUTTON_WIDTH_LARGE = 25
-    ENTRY_WIDTH_STANDARD = 25
-    ENTRY_WIDTH_LARGE = 35
+    # ============= RESPONSIVE SPACING =============
+    
+    @classmethod
+    def get_padding_small(cls):
+        """Get responsive small padding"""
+        responsive = cls.get_responsive_config()
+        if responsive:
+            return responsive.get_padding("small")
+        else:
+            return 5
+    
+    @classmethod
+    def get_padding_medium(cls):
+        """Get responsive medium padding"""
+        responsive = cls.get_responsive_config()
+        if responsive:
+            return responsive.get_padding("medium")
+        else:
+            return 10
+    
+    @classmethod
+    def get_padding_large(cls):
+        """Get responsive large padding"""
+        responsive = cls.get_responsive_config()
+        if responsive:
+            return responsive.get_padding("large")
+        else:
+            return 15
+    
+    # ============= RESPONSIVE WIDGET DIMENSIONS =============
+    
+    @classmethod
+    def get_button_width_standard(cls):
+        """Get responsive standard button width"""
+        responsive = cls.get_responsive_config()
+        if responsive:
+            return responsive.get_button_width("standard")
+        else:
+            return 20
+    
+    @classmethod
+    def get_button_width_large(cls):
+        """Get responsive large button width"""
+        responsive = cls.get_responsive_config()
+        if responsive:
+            return responsive.get_button_width("large")
+        else:
+            return 25
+    
+    @classmethod
+    def get_entry_width_standard(cls):
+        """Get responsive standard entry width"""
+        responsive = cls.get_responsive_config()
+        if responsive:
+            return responsive.get_entry_width("standard")
+        else:
+            return 25
+    
+    @classmethod
+    def get_entry_width_large(cls):
+        """Get responsive large entry width"""
+        responsive = cls.get_responsive_config()
+        if responsive:
+            return responsive.get_entry_width("large")
+        else:
+            return 35
+    
+    # ============= LEGACY COMPATIBILITY =============
+    # Keep these for backward compatibility with existing code
+    
+    PADDING_SMALL = property(lambda cls: cls.get_padding_small())
+    PADDING_MEDIUM = property(lambda cls: cls.get_padding_medium())
+    PADDING_LARGE = property(lambda cls: cls.get_padding_large())
+    PADDING_XLARGE = property(lambda cls: cls.get_padding_large())  # Map to large
+    
+    BUTTON_WIDTH_STANDARD = property(lambda cls: cls.get_button_width_standard())
+    BUTTON_WIDTH_LARGE = property(lambda cls: cls.get_button_width_large())
+    ENTRY_WIDTH_STANDARD = property(lambda cls: cls.get_entry_width_standard())
+    ENTRY_WIDTH_LARGE = property(lambda cls: cls.get_entry_width_large())
     
     # ============= WIDGET STYLES =============
     
     @classmethod
-    def get_header_font(cls):
-        """Get font for headers and section titles"""
-        return (cls.FONT_PRIMARY[0], cls.FONT_SIZE_LARGE, cls.FONT_BOLD)
-    
-    @classmethod
-    def get_body_font(cls):
-        """Get font for regular body text"""
-        return (cls.FONT_PRIMARY[0], cls.FONT_SIZE_MEDIUM, cls.FONT_NORMAL)
-    
-    @classmethod
-    def get_small_font(cls):
-        """Get font for small text and captions"""
-        return (cls.FONT_PRIMARY[0], cls.FONT_SIZE_SMALL, cls.FONT_NORMAL)
-    
-    @classmethod
-    def get_button_style(cls, button_type="primary"):
-        """Get button styling configuration"""
-        if button_type == "primary":
-            return {
-                "bg": cls.PRIMARY_BLUE,
-                "fg": cls.BACKGROUND_WHITE,
-                "font": cls.get_body_font(),
-                "relief": "flat",
-                "borderwidth": 0,
-                "padx": cls.PADDING_MEDIUM,
-                "pady": cls.PADDING_SMALL,
-                "cursor": "hand2",
-                "activebackground": cls.PRIMARY_BLUE_LIGHT,
-                "activeforeground": cls.BACKGROUND_WHITE
-            }
-        elif button_type == "secondary":
-            return {
-                "bg": cls.BACKGROUND_GRAY,
-                "fg": cls.TEXT_DARK,
-                "font": cls.get_body_font(),
-                "relief": "flat",
-                "borderwidth": 1,
-                "highlightcolor": cls.BORDER_GRAY,
-                "padx": cls.PADDING_MEDIUM,
-                "pady": cls.PADDING_SMALL,
-                "cursor": "hand2",
-                "activebackground": cls.BACKGROUND_LIGHT,
-                "activeforeground": cls.TEXT_DARK
-            }
-        elif button_type == "success":
-            return {
-                "bg": cls.SUCCESS_GREEN,
-                "fg": cls.BACKGROUND_WHITE,
-                "font": cls.get_body_font(),
-                "relief": "flat",
-                "borderwidth": 0,
-                "padx": cls.PADDING_MEDIUM,
-                "pady": cls.PADDING_SMALL,
-                "cursor": "hand2",
-                "activebackground": "#059669",
-                "activeforeground": cls.BACKGROUND_WHITE
-            }
-    
-    @classmethod
-    def get_entry_style(cls, state="normal"):
-        """Get entry widget styling configuration"""
-        if state == "disabled":
-            return {
-                "bg": cls.BACKGROUND_LIGHT,
-                "fg": cls.TEXT_LIGHT,
-                "font": cls.get_body_font(),
-                "relief": "solid",
-                "borderwidth": 1,
-                "highlightcolor": cls.BORDER_GRAY,
-                "insertbackground": cls.TEXT_DARK
-            }
-        else:
-            return {
-                "bg": cls.BACKGROUND_WHITE,
-                "fg": cls.TEXT_DARK,
-                "font": cls.get_body_font(),
-                "relief": "solid", 
-                "borderwidth": 1,
-                "highlightcolor": cls.PRIMARY_BLUE,
-                "insertbackground": cls.TEXT_DARK
-            }
-    
-    @classmethod
-    def get_label_style(cls, label_type="body"):
-        """Get label styling configuration"""
-        if label_type == "header":
-            return {
-                "font": cls.get_header_font(),
-                "fg": cls.TEXT_DARK,
-                "bg": cls.BACKGROUND_WHITE
-            }
-        elif label_type == "section":
-            return {
-                "font": (cls.FONT_PRIMARY[0], cls.FONT_SIZE_MEDIUM, cls.FONT_BOLD),
-                "fg": cls.TEXT_DARK,
-                "bg": cls.BACKGROUND_WHITE
-            }
-        else:  # body
-            return {
-                "font": cls.get_body_font(),
-                "fg": cls.TEXT_MEDIUM,
-                "bg": cls.BACKGROUND_WHITE
-            }
-    
-    @classmethod
-    def get_frame_style(cls):
-        """Get frame styling configuration"""
-        return {
-            "bg": cls.BACKGROUND_WHITE,
-            "relief": "solid",
-            "borderwidth": 1,
-            "highlightcolor": cls.BORDER_GRAY
-        }
-    
-    @classmethod
-    def get_labelframe_style(cls):
-        """Get label frame styling configuration"""
-        return {
-            "bg": cls.BACKGROUND_WHITE,
-            "relief": "groove",
-            "borderwidth": 2,
-            "font": cls.get_header_font(),
-            "fg": cls.TEXT_DARK
-        }
-
-    @classmethod
-    def apply_theme_to_widget(cls, widget, widget_type, **kwargs):
-        """Apply theme styling to any widget"""
-        if widget_type == "button":
-            button_type = kwargs.get("button_type", "primary")
-            style = cls.get_button_style(button_type)
-            widget.configure(**style)
-        elif widget_type == "entry":
-            state = kwargs.get("state", "normal")
-            style = cls.get_entry_style(state)
-            widget.configure(**style)
-        elif widget_type == "label":
-            label_type = kwargs.get("label_type", "body")
-            style = cls.get_label_style(label_type)
-            widget.configure(**style)
-        elif widget_type == "frame":
-            style = cls.get_frame_style()
-            widget.configure(**style)
-        elif widget_type == "labelframe":
-            style = cls.get_labelframe_style()
-            widget.configure(**style)
-
-    @classmethod
     def configure_ttk_styles(cls, root):
-        """Configure ttk styles for professional appearance"""
+        """Configure ttk styles with responsive fonts"""
         style = ttk.Style(root)
         
-        # Configure ttk label style
-        style.configure(
-            "Professional.TLabel",
-            font=cls.get_body_font(),
-            foreground=cls.TEXT_MEDIUM,
-            background=cls.BACKGROUND_WHITE
-        )
+        # Configure styles with responsive fonts
+        header_font = cls.get_header_font()
+        body_font = cls.get_body_font()
         
-        # Configure ttk header label style
-        style.configure(
-            "Header.TLabel", 
-            font=cls.get_header_font(),
-            foreground=cls.TEXT_DARK,
-            background=cls.BACKGROUND_WHITE
-        )
+        # Header styles
+        style.configure("Header.TLabel", 
+                       font=header_font,
+                       foreground=cls.TEXT_DARK,
+                       background=cls.BACKGROUND_WHITE)
         
-        # Configure ttk combobox style
-        style.configure(
-            "Professional.TCombobox",
-            font=cls.get_body_font(),
-            foreground=cls.TEXT_DARK,
-            fieldbackground=cls.BACKGROUND_WHITE,
-            borderwidth=1,
-            relief="solid"
-        )
+        # Professional styles
+        style.configure("Professional.TLabel",
+                       font=body_font,
+                       foreground=cls.TEXT_DARK,
+                       background=cls.BACKGROUND_WHITE)
         
-        # Return the style object for further customization
-        return style 
+        style.configure("Professional.TCombobox",
+                       font=body_font,
+                       fieldbackground=cls.BACKGROUND_WHITE,
+                       borderwidth=1,
+                       relief="solid")
+    
+    @classmethod
+    def apply_theme_to_widget(cls, widget, widget_type, **kwargs):
+        """Apply responsive theme to a widget"""
+        responsive = cls.get_responsive_config()
+        
+        if widget_type == "entry":
+            widget.configure(
+                bg=cls.BACKGROUND_WHITE,
+                fg=cls.TEXT_DARK,
+                font=cls.get_body_font(),
+                relief="solid",
+                borderwidth=1,
+                insertbackground=cls.TEXT_DARK
+            )
+        elif widget_type == "button":
+            button_type = kwargs.get("button_type", "default")
+            
+            if button_type == "primary":
+                bg_color = cls.PRIMARY_BLUE
+                fg_color = cls.BACKGROUND_WHITE
+            elif button_type == "success":
+                bg_color = cls.SUCCESS_GREEN
+                fg_color = cls.BACKGROUND_WHITE
+            else:
+                bg_color = cls.BACKGROUND_GRAY
+                fg_color = cls.TEXT_DARK
+            
+            widget.configure(
+                bg=bg_color,
+                fg=fg_color,
+                font=cls.get_body_font(),
+                relief="flat",
+                borderwidth=0,
+                activebackground=cls.PRIMARY_BLUE_LIGHT if button_type == "primary" else cls.BACKGROUND_LIGHT,
+                activeforeground=fg_color
+            )
+        elif widget_type == "labelframe":
+            widget.configure(
+                bg=cls.BACKGROUND_WHITE,
+                fg=cls.TEXT_DARK,
+                font=cls.get_header_font(),
+                relief="groove",
+                borderwidth=1
+            ) 

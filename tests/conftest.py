@@ -26,22 +26,54 @@ from ui.main_app import MainApplication
 # Session-wide Fixtures
 # ================================
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def tk_root():
     """
-    Session-wide tkinter root for GUI tests.
-    Hidden during testing to avoid UI interference.
+    Create a fresh tkinter root for each test.
+    Ensures proper cleanup to prevent tkinter conflicts.
     """
-    root = tk.Tk()
-    root.withdraw()  # Hide window during testing
-    root.title("Pytest Test Session")
-    yield root
+    import tkinter as tk
+    
+    # Destroy any existing root to ensure clean state
     try:
-        root.quit()
-        root.destroy()
-    except tk.TclError:
-        # Handle case where root is already destroyed
+        if hasattr(tk, '_default_root') and tk._default_root:
+            tk._default_root.destroy()
+            tk._default_root = None
+    except:
         pass
+    
+    # Create new root
+    root = tk.Tk()
+    root.withdraw()  # Hide the window during testing
+    
+    # Set as default root
+    tk._default_root = root
+    
+    yield root
+    
+    # Cleanup
+    try:
+        if root.winfo_exists():
+            # Destroy all child widgets first
+            for child in root.winfo_children():
+                try:
+                    child.destroy()
+                except:
+                    pass
+            # Then destroy the root
+            root.destroy()
+    except Exception as e:
+        # If normal cleanup fails, force cleanup
+        try:
+            root.quit()
+        except:
+            pass
+    finally:
+        # Clear the default root
+        try:
+            tk._default_root = None
+        except:
+            pass
 
 
 # ================================
@@ -58,10 +90,34 @@ def clean_data_manager(tk_root):
     DataManager._instance = None
     GlobalState._instance = None
     dm = DataManager()
+    
+    # Ensure completely clean cart state
+    dm.cart_data = pd.DataFrame(columns=[
+        'Sr.No', 'Particulars', 'Width', 'Height', 'Total Sq.ft', 'Cost (INR)', 'Quantity', 'Amount'
+    ])
+    dm._serial_counter = 1
+    dm.customer_details = {}
+    
+    # Reset global state customer variables to empty strings
+    dm.global_state.custNamVar.set("")
+    dm.global_state.custAddVar.set("")
+    dm.global_state.custConVar.set("")
+    dm.global_state.address = ""
+    
     yield dm
-    # Cleanup after test
-    if hasattr(dm, 'cart_data'):
-        dm.cart_data = pd.DataFrame()
+    
+    # Thorough cleanup after test
+    dm.cart_data = pd.DataFrame(columns=[
+        'Sr.No', 'Particulars', 'Width', 'Height', 'Total Sq.ft', 'Cost (INR)', 'Quantity', 'Amount'
+    ])
+    dm._serial_counter = 1
+    dm.customer_details = {}
+    
+    # Reset global state customer variables after test
+    dm.global_state.custNamVar.set("")
+    dm.global_state.custAddVar.set("")
+    dm.global_state.custConVar.set("")
+    dm.global_state.address = ""
 
 
 @pytest.fixture
@@ -117,15 +173,19 @@ def sample_customer_data():
 @pytest.fixture
 def sample_cart_item():
     """Basic sample cart item for testing"""
+    # Application uses: Amount = Cost (per sq.ft) × Area × Quantity
+    # Cost (INR) = 1500.0 per sq.ft
+    # Area = 10ft × 8ft = 80 sq.ft  
+    # Amount = 1500.0 × 80 × 1 = 120,000
     return {
         'Sr.No': 1,
         'Particulars': 'Sliding Window',
         'Width': '10ft',
         'Height': '8ft',
         'Total Sq.ft': 80.0,
-        'Cost (INR)': 1500.0,
+        'Cost (INR)': 1500.0,  # Cost per sq.ft
         'Quantity': 1,
-        'Amount': 1500.0,
+        'Amount': 120000.0,    # 1500 × 80 × 1
         # Hidden specification columns (would be populated in real usage)
         'trackVar': '2 Track',
         'aluMatVar': 'Regular Section',
@@ -144,9 +204,9 @@ def sample_cart_items_multiple():
             'Width': '10ft',
             'Height': '8ft',
             'Total Sq.ft': 80.0,
-            'Cost (INR)': 1500.0,
+            'Cost (INR)': 1500.0,   # per sq.ft
             'Quantity': 1,
-            'Amount': 1500.0
+            'Amount': 120000.0      # 1500 × 80 × 1
         },
         {
             'Sr.No': 2,
@@ -154,9 +214,9 @@ def sample_cart_items_multiple():
             'Width': '8ft',
             'Height': '10ft',
             'Total Sq.ft': 80.0,
-            'Cost (INR)': 2000.0,
+            'Cost (INR)': 2000.0,   # per sq.ft
             'Quantity': 2,
-            'Amount': 4000.0
+            'Amount': 320000.0      # 2000 × 80 × 2
         },
         {
             'Sr.No': 3,
@@ -164,9 +224,9 @@ def sample_cart_items_multiple():
             'Width': '6ft',
             'Height': '4ft',
             'Total Sq.ft': 24.0,
-            'Cost (INR)': 800.0,
+            'Cost (INR)': 800.0,    # per sq.ft
             'Quantity': 3,
-            'Amount': 2400.0
+            'Amount': 57600.0       # 800 × 24 × 3
         }
     ]
 
@@ -305,20 +365,19 @@ def dimensions_test_data(request):
 # ================================
 
 @pytest.fixture
-def performance_data_manager(clean_data_manager):
-    """DataManager with performance test data pre-loaded"""
-    dm = clean_data_manager
+def performance_data_manager():
+    """DataManager optimized for performance testing with clean state"""
+    # Force completely clean singleton for accurate performance measurements
+    DataManager._instance = None
+    GlobalState._instance = None
+    dm = DataManager()
     
-    # Pre-load with test data for performance testing
-    for i in range(10):
-        item = {
-            'Sr.No': i + 1,
-            'Particulars': f'Test Window {i+1}',
-            'Cost (INR)': 1000.0 + (i * 100),
-            'Quantity': 1,
-            'Amount': 1000.0 + (i * 100)
-        }
-        dm.add_item_to_cart(item)
+    # Ensure completely clean state - NO pre-loaded data
+    dm.cart_data = pd.DataFrame(columns=[
+        'Sr.No', 'Particulars', 'Width', 'Height', 'Total Sq.ft', 'Cost (INR)', 'Quantity', 'Amount'
+    ])
+    dm._serial_counter = 1
+    dm.customer_details = {}
     
     return dm
 
@@ -375,15 +434,16 @@ def pytest_collection_modifyitems(config, items):
 
 def create_test_item(sr_no=1, particulars="Test Item", cost=1000.0, quantity=1):
     """Helper function to create standardized test cart items"""
+    area = 80.0  # 10ft × 8ft
     return {
         'Sr.No': sr_no,
         'Particulars': particulars,
         'Width': '10ft',
         'Height': '8ft',
-        'Total Sq.ft': 80.0,
-        'Cost (INR)': cost,
+        'Total Sq.ft': area,
+        'Cost (INR)': cost,  # Cost per sq.ft
         'Quantity': quantity,
-        'Amount': cost * quantity
+        'Amount': cost * area * quantity  # Correct: cost × area × quantity
     }
 
 

@@ -224,18 +224,40 @@ class GlobalState:
         
     def reset_specification_vars(self):
         """Reset all specification variables to empty/default values"""
-        spec_vars = self.get_all_specification_vars()
-        for var_name, var in spec_vars.items():
-            if isinstance(var, tk.IntVar):
-                var.set(0)
-            else:
-                var.set("")
+        self.trackVar.set("")
+        self.aluMatVar.set("")
+        self.glaThicVar.set("")
+        self.glaTypVar.set("")
+        self.hardLocVar.set("")
+        self.hardBeaVar.set("")
+        self.rubbTypVar.set("")
+        self.rubbThicVar.set("")
+        self.woolFileVar.set("")
+        self.aluNetVar.set("")
+        self.fraColVar.set("")
+        self.silColVar.set("")
+        self.screwVar1.set(0)
+        self.screwVar2.set(0)
+        self.screwVar3.set(0)
+        self.screwVar4.set(0)
+        self.screwVar5.set(0)
+        self.screwVar6.set(0)
+        self.lowBladVar.set("")
+        self.handleVar.set("")
+        self.acrSheVar.set("")
+        self.hardwaVar.set("")
+        self.compSheVar.set("")
+        self.maskTapVar.set("")
+        self.acpSheVar.set("")
                 
     def validate_digits(self, value):
         """Legacy checkDigits equivalent - validate numeric input"""
-        if not value:
-            return False
-        return all(c in self.digVerify for c in value)
+        if not value:  # Empty string is valid
+            return True
+        
+        # Allow negative numbers by including '-' in allowed characters
+        allowed_chars = "1234567890.,-"
+        return all(c in allowed_chars for c in str(value))
 
 
 # Global instance (singleton pattern)
@@ -246,4 +268,9 @@ def get_global_state():
     global _global_state
     if _global_state is None:
         _global_state = GlobalState()
-    return _global_state 
+    return _global_state
+
+def reset_global_state():
+    """Reset the singleton global state instance"""
+    global _global_state
+    _global_state = None 

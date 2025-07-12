@@ -1,6 +1,7 @@
 from fpdf import FPDF
 from datetime import date
 from babel.numbers import format_currency
+from num2words import num2words
 import pandas as pd
 import os
 
@@ -99,20 +100,32 @@ def create_quotation_pdf(filename, customer_details, cart_items, final_costs):
 
 
 class PDF(FPDF):
+
+    fileName = None
+    printDoneFlag = False
+
     def __init__(self, customer_details, cart_items, final_costs, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.customer_details = customer_details
         self.cart_items = cart_items
         self.final_costs = final_costs
         self.print_done_flag = False
-        self.today = date.today()
+        
+        # Use custom date if provided, otherwise use today's date
+        if "quotation_date" in final_costs and final_costs["quotation_date"]:
+            self.today = final_costs["quotation_date"].date()
+        else:
+            self.today = date.today()
+            
         # A unique quotation number can be generated here or passed in
-        self.quotation_number = (
-            f"QUO/{self.today.strftime('%d%m-%Y')}/{pd.Timestamp.now().microsecond}"
-        )
+        if "quotation_number" in final_costs and final_costs["quotation_number"]:
+            self.quotation_number = final_costs["quotation_number"]
+        else:
+            self.quotation_number = (
+                f"QUO/{self.today.strftime('%d%m-%Y')}/{pd.Timestamp.now().microsecond}"
+            )
 
-    fileName = None
-    printDoneFlag = False
+            
 
     def header(self):
         self.set_font("helvetica", "B", 15)
@@ -157,6 +170,63 @@ class PDF(FPDF):
         self.pdf_end()
 
     def homePage(self):
+        # Add MGA logo and company header section (matching legacy exactly)
+        try:
+            self.image(os.path.join(IMAGE_DIR, "MGA_1.png"), x=20, y=10, w=55, h=35.9)
+        except Exception as e:
+            print(f"Logo image not found: {e}")
+            # Add placeholder text if logo image not found
+            self.set_y(10)
+            self.set_x(20)
+            self.set_font("helvetica", "B", 16)
+            self.cell(w=55, h=35.9, txt="MGA WINDOWS", align="C", border=1)
+        
+        # Vertical separator line
+        self.line(85, 6, 85, 48)
+        
+        # Company contact icons and information (matching legacy layout)
+        try:
+            # Maps icon with link
+            self.image(
+                os.path.join(IMAGE_DIR, "Mapslogo.png"),
+                x=95,
+                y=12,
+                w=5,
+                h=7,
+                link="https://www.google.com/maps/place/Madhav+Glass+and+Aluminium/@19.8758195,75.3916281,18.5z/data=!4m5!3m4!1s0x0:0x6466e4a2d6fec24c!8m2!3d19.8759565!4d75.3913081",
+            )
+            # Phone icon
+            self.image(os.path.join(IMAGE_DIR, "PhoneIcon.png"), x=95, y=24, w=5, h=5)
+            # Email icon
+            self.image(os.path.join(IMAGE_DIR, "EmailIcon.png"), x=95, y=35, w=5, h=3.8)
+        except Exception as e:
+            print(f"Contact icons not found: {e}")
+
+        # Company address with link
+        self.set_y(15)
+        self.set_x(102)
+        self.set_font("helvetica", "", 8)
+        self.cell(
+            w=0,
+            txt="Chikalthana MIDC, Opp Ajantha Pharma, Aurangabad - 431001",
+            link="https://www.google.com/maps/place/Madhav+Glass+and+Aluminium/@19.8758195,75.3916281,18.5z/data=!4m5!3m4!1s0x0:0x6466e4a2d6fec24c!8m2!3d19.8759565!4d75.3913081",
+        )
+
+        # Phone numbers
+        self.set_y(27)
+        self.set_x(102)
+        self.cell(w=0, txt="7875115371, 8149440829")
+
+        # Email address
+        self.set_y(37)
+        self.set_x(102)
+        self.cell(w=0, txt="madhavglassandaluminium@gmail.com")
+
+        # Horizontal separator lines
+        self.line(15, 52, 195, 52)
+        self.dashed_line(15, 53, 195, 53)
+
+        # Date section (right side)
         self.set_y(60)
         self.set_x(170)
         self.set_font("helvetica", "B", 8)
@@ -167,6 +237,7 @@ class PDF(FPDF):
         self.set_font("helvetica", "", 9)
         self.cell(w=0, txt=f"{self.today.day}/{self.today.month}/{self.today.year}")
 
+        # Quotation number section (right side)
         self.set_y(67)
         self.set_x(140)
         self.set_font("helvetica", "B", 8)
@@ -179,6 +250,7 @@ class PDF(FPDF):
         self.set_font("helvetica", "", 9)
         self.cell(w=0, txt=self.quotation_number)
 
+        # Customer details section (left side)
         self.set_y(60)
         self.set_x(15)
         self.set_font("helvetica", "B", 8)
@@ -245,36 +317,46 @@ class PDF(FPDF):
         key = item_row["Particulars"]
 
         self.draw_lines(text_level)
-        self.set_y(text_level)
+        
+        # Print Sr.No in the first column with proper vertical centering
+        self.set_y(text_level + 5)  # Add some top padding
         self.set_x(15)
-        self.set_font("helvetica", "", 6)
-        self.cell(w=12, txt=str(item_row["Sr.No"]), align="C")
+        self.set_font("helvetica", "B", 8)  # Slightly larger font for better visibility
+        self.cell(w=12, h=10, txt=str(item_row["Sr.No"]), align="C")
+        
         self.insert_image(item_row, design_x, text_level)
 
+        # Position product title below the image with better spacing
         if RATIO.get(key) and RATIO[key][0] < 50:
-            self.set_y(text_level + 65)
+            title_y = text_level + 70  # More space for larger images
         else:
-            self.set_y(text_level + 55)
+            title_y = text_level + 60  # Standard spacing
+        
+        self.set_y(title_y)
         self.set_x(design_x)
-        self.set_font("helvetica", "B", 6)
-        self.cell(w=65, txt=key, align="C")
+        self.set_font("helvetica", "B", 7)  # Slightly larger font for product title
+        self.cell(w=65, h=8, txt=key, align="C")
 
         self.print_specs(text_level, specs_x, item_row)
 
-        self.set_y(text_level)
+        # Cost column - vertically centered
+        self.set_y(text_level + 5)
         self.set_x(cost_x)
-        self.set_font("helvetica", "B", 6)
-        self.cell(w=20, txt=str(item_row["Cost (INR)"]), align="C")
+        self.set_font("helvetica", "B", 7)
+        self.cell(w=20, h=10, txt=str(item_row["Cost (INR)"]), align="C")
 
-        self.set_y(text_level)
+        # Quantity column - vertically centered
+        self.set_y(text_level + 5)
         self.set_x(quantity_x)
-        self.set_font("helvetica", "", 6)
-        self.cell(w=10, txt=str(item_row["Quantity"]), align="C")
+        self.set_font("helvetica", "", 7)
+        self.cell(w=10, h=10, txt=str(item_row["Quantity"]), align="C")
 
-        self.set_y(text_level)
+        # Amount column - vertically centered
+        self.set_y(text_level + 5)
         self.set_x(amount_x)
-        self.set_font("helvetica", "B", 6)
-        self.cell(w=28, txt=str(item_row["Amount"]), align="C")
+        self.set_font("helvetica", "B", 7)
+        self.cell(w=28, h=10, txt=str(item_row["Amount"]), align="C")
+        
         self.ln(90)
 
     def insert_image(self, item_row, design_x, text_level):
@@ -289,55 +371,56 @@ class PDF(FPDF):
             self.image(
                 os.path.join(IMAGE_DIR, f"{key}.png"),
                 x=design_x + 7.5,
-                y=text_level + 5,
+                y=text_level + 8,  # Start image a bit lower to avoid overlapping
                 w=img_w,
                 h=img_h,
             )
         except RuntimeError as e:
             print(f"Could not load image for {key}: {e}. Skipping.")
             # Draw a placeholder box instead
-            self.rect(design_x + 7.5, text_level + 5, img_w, img_h)
-            self.set_xy(design_x + 7.5, text_level + 5 + img_h / 2)
+            self.rect(design_x + 7.5, text_level + 8, img_w, img_h)
+            self.set_xy(design_x + 7.5, text_level + 8 + img_h / 2)
             self.cell(w=img_w, txt="Image not found", align="C")
 
+        # Width dimension text (below image) - with better spacing
         str_width = self.get_string_width(str(item_row["Width"]))
+        self.set_y(text_level + 12 + img_h)  # More space below image
+        self.set_x(design_x + (65 - str_width) / 2)  # Center in the column
+        self.set_font("helvetica", "", 7)  # Slightly larger font
+        self.cell(w=str_width + 4, h=4, txt=str(item_row["Width"]), align="C")
+
+        # Height dimension text (left side of image) - with better positioning
         str_height = self.get_string_width(str(item_row["Height"]))
-
-        self.set_y(text_level + 8.2 + img_h)
-        self.set_x(design_x + (60 - str_width) / 2)
-        self.set_font("helvetica", "", 6)
-        self.cell(w=str_width + 4, txt=str(item_row["Width"]), align="C")
-
-        self.set_y(text_level + 4 + (img_h / 2))
-        self.set_x(design_x + 1.7)
-        self.set_font("helvetica", "", 6)
-        self.cell(w=str_height + 4, h=5, txt=str(item_row["Height"]), align="C")
+        self.set_y(text_level + 8 + (img_h / 2) - 2)  # Center vertically with image
+        self.set_x(design_x + 2)  # Small margin from column edge
+        self.set_font("helvetica", "", 7)  # Slightly larger font
+        self.cell(w=str_height + 4, h=4, txt=str(item_row["Height"]), align="C")
 
     def print_specs(self, text_level, specs_x, item_row):
-        self.set_y(text_level)
+        # Start specifications with some top padding to avoid overlapping
+        spec_start_y = text_level + 8
+        
+        # Print area information first
+        self.set_y(spec_start_y)
         self.set_x(specs_x)
-        self.set_font("helvetica", "BI", 7)
-        self.set_text_color(118, 175, 93)
-        # Cost per sqft is not in the cart data, so we comment this out.
-        # self.cell(w=10,txt=f"Rate (Rs.): {item_row.get('costEntVar', '')} Sq.Ft.")
-        text_level += 4
-        self.set_y(text_level)
-        self.set_x(specs_x)
-        self.set_font("helvetica", "", 6)
+        self.set_font("helvetica", "", 7)  # Slightly larger font
         self.set_text_color(0, 0, 0)
-        self.cell(w=10, txt=f"Area: {item_row.get('Total Sq.ft', '')} Sq.Ft.")
-        text_level += 4
+        self.cell(w=40, h=4, txt=f"Area: {item_row.get('Total Sq.ft', '')} Sq.Ft.")
+        spec_start_y += 6
 
+        # Print each specification with proper spacing
         for key, display_name in VAR_NAME.items():
             if (
                 key in item_row
                 and item_row[key]
                 and str(item_row[key]) not in ["0", "nan", ""]
             ):
-                self.set_y(text_level)
+                self.set_y(spec_start_y)
                 self.set_x(specs_x)
+                self.set_font("helvetica", "", 6)
+                self.set_text_color(0, 0, 0)
                 self.multi_cell(w=40, h=3.5, txt=f"{display_name}: {item_row[key]}")
-                text_level = self.get_y()
+                spec_start_y = self.get_y() + 1  # Add small gap between specs
 
     def draw_lines(self, title_level_y):
         # This draws the row lines for a single item
@@ -597,7 +680,7 @@ def create_invoice_pdf(
     filename, customer_details, invoice_details, cart_items_with_hsn, final_costs
 ):
     """
-    High-level function to generate the complete invoice PDF.
+    High-level function to generate the complete invoice PDF exactly as legacy.
     This is the only function that should be called from the UI.
     """
     try:
@@ -611,12 +694,11 @@ def create_invoice_pdf(
             format="A4",
         )
         pdf.set_auto_page_break(auto=True, margin=15)
-        pdf.add_page()
-        pdf.home_page()
-        pdf.infosection_title()
-        pdf.infosection()
-        pdf.end_print()
+        
+        # Use legacy-style driver code
+        pdf.invoice_driver_code()
         pdf.output(filename)
+        
         return True, None
     except Exception as e:
         print(f"Error in create_invoice_pdf: {e}")  # Added for debugging
@@ -638,176 +720,877 @@ class PDFInvoice(FPDF):
         self.invoice_details = invoice_details
         self.cart_items = cart_items_with_hsn
         self.final_costs = final_costs
-        self.today = date.today()
+        
+        # Use custom date if provided, otherwise use today's date
+        if "invoice_date" in invoice_details and invoice_details["invoice_date"]:
+            self.today = invoice_details["invoice_date"].date()
+        else:
+            self.today = date.today()
+            
+        self.print_count = 0
+        self.tax_print_count = 0
+        self.end_print_level = 0
+        self.amt_sum = 0
 
     def header(self):
-        try:
-            self.image(os.path.join(IMAGE_DIR, "MGA_1.png"), x=10, y=8, w=33)
-        except Exception as e:
-            print(f"Header Image Error: {e}")
         self.set_font("helvetica", "B", 15)
-        self.cell(80)
-        self.cell(30, 10, "Tax Invoice", 1, 0, "C")
-        self.cell(80)
-        self.set_font("helvetica", "", 10)
-        self.cell(30, 10, "Original for Recipient", 0, 0, "C")
-        self.ln(20)
+        self.cell(0, 10, "TAX INVOICE", align="C")
+
+        # Draw page borders exactly as legacy
+        self.line(15, 20, 15, 280)
+        self.line(195, 20, 195, 280)
+        self.line(15, 20, 195, 20)
+        self.line(15, 280, 195, 280)
 
     def footer(self):
-        self.set_y(-25)
+        self.set_y(-17)
         self.set_font("helvetica", "I", 8)
-        self.cell(0, 10, "This is a computer-generated invoice", 0, 0, "C")
-        self.set_y(-20)
-        self.set_font("helvetica", "B", 10)
-        self.cell(125)
-        self.cell(0, 10, "For Madhav Glass & Aluminium", 0, 0, "C")
+        self.cell(0, 10, "This is a Computer Generated Invoice.", align="C")
+
+    def draw_lines(self, title_level_y=10):
+        """Draw section separator lines exactly as legacy"""
+        self.line(105, 20, 105, 65)
+        self.line(15, 65, 195, 65)
+        self.line(15, 80, 195, 80)
+        self.line(15, 95, 195, 95)
+
+        for i in range(1, 4):
+            self.line(15 + (60 * i), 65, 15 + (60 * i), 95)
+
+        self.line(15, 96, 195, 96)
+
+    def draw_lines_info(self, print_level):
+        """Draw item section lines exactly as legacy"""
+        self.line(15, 105, 195, 105)
+        self.line(23, 96, 23, print_level)
+        self.line(88, 96, 88, print_level)
+        self.line(108, 96, 108, print_level)
+        self.line(132, 96, 132, print_level)
+        self.line(157, 96, 157, print_level)
+        self.line(167.5, 96, 167.5, print_level)
+
+    def draw_lines_tax(self, start_tax_level, tax_level):
+        """Draw tax section lines exactly as legacy"""
+        self.line(40, start_tax_level, 40, tax_level + 7)
+        self.line(70, start_tax_level, 70, tax_level + 7)
+        self.line(120, start_tax_level, 120, tax_level + 7)
+        self.line(170, start_tax_level, 170, tax_level + 7)
+        self.line(70, start_tax_level + 8, 170, start_tax_level + 8)
+        self.line(90, start_tax_level + 8, 90, tax_level + 7)
+        self.line(140, start_tax_level + 8, 140, tax_level + 7)
+        self.line(15, start_tax_level + 16, 195, start_tax_level + 16)
 
     def home_page(self):
-        # Seller Details
-        self.set_xy(12, 35)
+        """Create home page layout exactly as legacy"""
+        # Seller section (left side)
+        self.set_y(23)
+        self.set_x(17.5)
         self.set_font("helvetica", "B", 10)
-        self.cell(w=0, txt="Madhav Glass & Aluminium")
-        self.ln(5)
-        self.set_x(12)
-        self.set_font("helvetica", "", 10)
-        self.cell(w=0, txt="Plot no. 5, Chikalthana MIDC,")
-        self.ln(5)
-        self.set_x(12)
-        self.cell(w=0, txt="Opp. Ajantha Pharma, Aurangabad - 431001")
-        self.ln(5)
-        self.set_x(12)
-        self.cell(w=0, txt="Maharashtra")
-        self.ln(5)
-        self.set_x(12)
-        self.set_font("helvetica", "B", 10)
-        self.cell(w=0, txt="GSTIN/UIN: 27BEXP8978P1Z5")
-        self.ln(5)
-        self.set_x(12)
-        self.cell(w=0, txt="PAN/IT No.: BEXXXXXX7P")
+        self.cell(w=12, txt="Seller", align="C")
 
-        # Invoice Details
-        self.set_xy(110, 35)
-        self.set_font("helvetica", "B", 10)
-        self.cell(w=0, txt=f"Invoice No.: {self.invoice_details.get('invNumbVar', '')}")
-        self.ln(5)
-        self.set_x(110)
-        self.set_font("helvetica", "", 10)
-        self.cell(
-            w=0, txt=f"Quotation No.: {self.invoice_details.get('quotNumbVar', '')}"
-        )
-        self.ln(5)
-        self.set_x(110)
+        self.set_y(30)
+        self.set_x(17)
+        self.set_font("helvetica", "BI", 8)
+        self.cell(w=0, txt="Madhav Glass and Aluminium")
+
+        self.set_y(34)
+        self.set_x(17)
+        self.set_font("helvetica", "", 8)
         self.cell(
             w=0,
-            txt=f"Mode/Terms of Payment: {self.invoice_details.get('modeTermVar', '')}",
+            txt="Chikalthana MIDC, Opp Ajantha Pharma,",
+            link="https://www.google.com/maps/place/Madhav+Glass+and+Aluminium/@19.8758195,75.3916281,18.5z/data=!4m5!3m4!1s0x0:0x6466e4a2d6fec24c!8m2!3d19.8759565!4d75.3913081",
         )
-        self.ln(5)
-        self.set_x(110)
+
+        self.set_y(38)
+        self.set_x(17)
+        self.set_font("helvetica", "", 8)
         self.cell(
             w=0,
-            txt=f"Terms of Delivery: {self.invoice_details.get('termOfDelVar', '')}",
+            txt="Aurangabad - 431001",
+            link="https://www.google.com/maps/place/Madhav+Glass+and+Aluminium/@19.8758195,75.3916281,18.5z/data=!4m5!3m4!1s0x0:0x6466e4a2d6fec24c!8m2!3d19.8759565!4d75.3913081",
         )
-        self.ln(5)
-        self.set_x(110)
-        self.cell(w=0, txt=f"Destination: {self.invoice_details.get('destinVar', '')}")
 
-        # Buyer Details
-        self.set_xy(12, self.get_y() + 10)
+        self.set_y(42)
+        self.set_x(17)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=0, txt="State Name : ")
+
+        wi = self.get_string_width("State Name : ")
+
+        self.set_y(42)
+        self.set_x(17 + wi)
+        self.set_font("helvetica", "I", 8)
+        self.cell(w=0, txt="Maharashtra, Code : 27")
+
+        self.set_y(46)
+        self.set_x(17)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=0, txt="Contact : ")
+
+        wi = self.get_string_width("Contact : ")
+
+        self.set_y(46)
+        self.set_x(17 + wi)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=0, txt="7875115371, 8149440829")
+
+        self.set_y(50)
+        self.set_x(17)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=0, txt="Email-ID : ")
+
+        wi = self.get_string_width("Email-ID : ")
+
+        self.set_y(50)
+        self.set_x(17 + wi)
+        self.set_font("helvetica", "I", 8)
+        self.cell(w=0, txt="madhavglassandaluminium@gmail.com")
+
+        self.set_y(54)
+        self.set_x(17)
+        self.set_font("helvetica", "B", 8)
+        self.cell(w=0, txt="GST Registration No : ")
+
+        wi = self.get_string_width("GST Registration No : ")
+
+        self.set_y(54)
+        self.set_x(17 + wi)
+        self.set_font("helvetica", "I", 8)
+        self.cell(w=0, txt="27CURPB8193C1ZC")
+
+        self.set_y(58)
+        self.set_x(17)
+        self.set_font("helvetica", "B", 8)
+        self.cell(w=0, txt="PAN No : ")
+
+        wi = self.get_string_width("PAN No : ")
+
+        self.set_y(58)
+        self.set_x(17 + wi)
+        self.set_font("helvetica", "I", 8)
+        self.cell(w=0, txt="CURPB8193C")
+
+        # Buyer section (right side) - Fixed spacing
+        self.set_y(23)
+        self.set_x(107)
         self.set_font("helvetica", "B", 10)
         self.cell(w=0, txt="Buyer")
-        self.ln(5)
-        self.set_x(12)
-        self.set_font("helvetica", "", 10)
+
+        self.set_y(30)
+        self.set_x(107)
+        self.set_font("helvetica", "BI", 8)
         self.cell(w=0, txt=f"{self.customer_details.get('custNamVar', '')}")
-        self.ln(5)
-        self.set_x(12)
-        self.multi_cell(w=80, h=5, txt=f"{self.customer_details.get('custAddVar', '')}")
-        self.ln(5)
-        self.set_x(12)
+
+        # Customer address with proper spacing
+        self.set_y(34)
+        self.set_x(107)
+        self.set_font("helvetica", "", 8)
+        self.multi_cell(w=70, h=4, txt=f"{self.customer_details.get('custAddVar', '')}")
+        
+        # Get current Y position after address and add spacing
+        address_end_y = self.get_y()
+        contact_y = address_end_y + 2  # Add 2mm spacing after address
+
+        # Contact information with proper positioning
+        self.set_y(contact_y)
+        self.set_x(107)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=0, txt="Contact : ")
+
+        wi = self.get_string_width("Contact : ")
+        self.set_y(contact_y)
+        self.set_x(107 + wi)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=0, txt=f"{self.customer_details.get('custConVar', '')}")
+
+        # GST Registration with proper spacing
+        gst_y = contact_y + 4
+        self.set_y(gst_y)
+        self.set_x(107)
+        self.set_font("helvetica", "B", 8)
+        self.cell(w=0, txt="GST Registration No : ")
+
+        wi = self.get_string_width("GST Registration No : ")
+        self.set_y(gst_y)
+        self.set_x(107 + wi)
+        self.set_font("helvetica", "I", 8)
+        self.cell(w=0, txt=f"{self.invoice_details.get('custGstVar', '')}")
+
+        # PAN Number with proper spacing
+        pan_y = gst_y + 4
+        self.set_y(pan_y)
+        self.set_x(107)
+        self.set_font("helvetica", "B", 8)
+        self.cell(w=0, txt="PAN No : ")
+
+        wi = self.get_string_width("PAN No : ")
+        self.set_y(pan_y)
+        self.set_x(107 + wi)
+        self.set_font("helvetica", "I", 8)
+        self.cell(w=0, txt=f"{self.invoice_details.get('custPanVar', '')}")
+
+        # Invoice details section
+        self.set_y(67)
+        self.set_x(17)
         self.set_font("helvetica", "B", 10)
-        self.cell(w=0, txt=f"GSTIN/UIN: {self.invoice_details.get('custGstVar', '')}")
-        self.ln(5)
-        self.set_x(12)
-        self.cell(w=0, txt=f"PAN/IT No.: {self.invoice_details.get('custPanVar', '')}")
+        self.cell(w=0, txt="Invoice No.")
 
-        self.ln(10)
+        self.set_y(73)
+        self.set_x(17)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=0, txt=f"{self.invoice_details.get('invNumbVar', '')}")
 
-    def infosection_title(self):
-        self.set_x(10)
-        self.set_font("helvetica", "B", 9)
-        self.set_fill_color(229, 233, 243)
-        self.cell(10, 10, "Sr.No", border=1, align="C", fill=True)
-        self.cell(80, 10, "Description of Goods", border=1, align="C", fill=True)
-        self.cell(20, 10, "HSN/SAC", border=1, align="C", fill=True)
-        self.cell(20, 10, "Quantity", border=1, align="C", fill=True)
-        self.cell(25, 10, "Rate", border=1, align="C", fill=True)
-        self.cell(25, 10, "Amount", border=1, align="C", fill=True)
-        self.ln()
+        self.set_y(67)
+        self.set_x(77)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=0, txt="Quotation No.")
 
-    def infosection(self):
-        self.set_font("helvetica", "", 9)
-        for i, item in self.cart_items.iterrows():
-            self.set_x(10)
-            desc = f"{item['Particulars']} ({item['Width']} x {item['Height']})"
+        self.set_y(73)
+        self.set_x(77)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=0, txt=f"{self.invoice_details.get('quotNumbVar', '')}")
 
-            # Use self.get_string_width to calculate cell height
-            desc_width = 78
-            lines = self.multi_cell(
-                w=desc_width, h=5, txt=desc, dry_run=True, output="L"
-            )
-            cell_height = len(lines) * 5
+        self.set_y(67)
+        self.set_x(137)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=0, txt="Date")
 
-            self.cell(10, cell_height, str(item["Sr.No"]), border=1, align="C")
+        self.set_y(73)
+        self.set_x(137)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=0, txt=f"{self.today.day}/{self.today.month}/{self.today.year}")
 
-            x_before_multi = self.get_x()
-            y_before_multi = self.get_y()
-            self.multi_cell(80, 5, desc, border=1, align="L")
-            self.set_xy(x_before_multi + 80, y_before_multi)
+        self.set_y(82)
+        self.set_x(17)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=0, txt="Mode/Terms of Payment")
 
-            self.cell(
-                20, cell_height, str(item.get("hsn_sac", "")), border=1, align="C"
-            )
-            self.cell(20, cell_height, str(item["Quantity"]), border=1, align="C")
-            self.cell(25, cell_height, f"{item['Cost (INR)']:.2f}", border=1, align="R")
-            self.cell(25, cell_height, f"{item['Amount']:.2f}", border=1, align="R")
-            self.ln()
+        self.set_y(88)
+        self.set_x(17)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=0, txt=f"{self.invoice_details.get('modeTermVar', '')}")
+
+        self.set_y(82)
+        self.set_x(77)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=0, txt="Terms of Delivery")
+
+        self.set_y(88)
+        self.set_x(77)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=0, txt=f"{self.invoice_details.get('termOfDelVar', '')}")
+
+        self.set_y(82)
+        self.set_x(137)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=0, txt="Destination")
+
+        self.set_y(88)
+        self.set_x(137)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=0, txt=f"{self.invoice_details.get('destinVar', '')}")
+
+        self.draw_lines()
+
+    def info_section_title(self):
+        """Create item section headers exactly as legacy"""
+        self.set_y(97.5)
+        self.set_x(15.5)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=0, txt="Sr.")
+
+        self.set_y(101.5)
+        self.set_x(15.5)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=0, txt="No.")
+
+        self.set_y(99)
+        self.set_x(23)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=65, txt="Description of Goods", align="C")
+
+        self.set_y(99)
+        self.set_x(88)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=20, txt="HSN/SAC", align="C")
+
+        self.set_y(99)
+        self.set_x(110)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=23, txt="Rate/Sq Ft.", align="C")
+
+        self.set_y(99)
+        self.set_x(133)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=24, txt="Amount", align="C")
+
+        self.set_y(99)
+        self.set_x(158)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=10, txt="Qty.", align="C")
+
+        self.set_y(99)
+        self.set_x(167.5)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=30, txt="Total Amount", align="C")
+
+    def print_info(self, x, print_level):
+        """Print single item info exactly as legacy"""
+        self.set_y(print_level)
+        self.set_x(15.5)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=7, txt=f"{x + 1}", align="C")
+
+        # Extract item data
+        item_row = self.cart_items.iloc[x]
+        width = float(str(item_row["Width"]).replace("ft", ""))
+        height = float(str(item_row["Height"]).replace("ft", ""))
+        area = width * height
+        area_str = f"{round(area, 2)} Sq Ft."
+
+        desc = item_row["Particulars"]
+        desc1 = f" ({item_row['Width']} x {item_row['Height']} = {area_str})"
+
+        w = self.get_string_width(desc)
+
+        self.set_y(print_level)
+        self.set_x(24)
+        self.set_font("helvetica", "BI", 8)
+        self.cell(w=w + 2, txt=f"{desc}", align="L")
+        self.set_font("helvetica", "", 7)
+        self.cell(w=77, txt=f"{desc1}", align="L")
+
+        self.set_y(print_level)
+        self.set_x(88)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=20, txt=f"{item_row.get('hsn_sac', '')}", align="C")
+
+        rate = item_row["Cost (INR)"]
+        amount = item_row["Amount"]
+
+        self.set_y(print_level)
+        self.set_x(115)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=22.5, txt=f"{rate}", align="L")
+
+        self.set_y(print_level)
+        self.set_x(133)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=25, txt=f"Rs. {amount}", align="L")
+
+        self.set_y(print_level)
+        self.set_x(160)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=8, txt=f"{item_row['Quantity']}", align="C")
+
+        self.set_y(print_level)
+        self.set_x(168)
+        self.set_font("helvetica", "B", 8)
+        self.cell(w=22.5, txt=f"Rs. {amount}", align="L")
+
+    def info_section(self):
+        """Create item section exactly as legacy"""
+        print_level = 108
+        self.info_section_title()
+        
+        # Calculate totals
+        total_amount = 0
+        for _, item in self.cart_items.iterrows():
+            amount = float(str(item["Amount"]).replace("Rs.", "").replace(",", ""))
+            total_amount += amount
+
+        # Print all items
+        for i in range(len(self.cart_items)):
+            if print_level <= 200:
+                self.print_count += 1
+                self.print_info(i, print_level)
+                print_level += 7
+            else:
+                # Handle pagination if needed
+                break
+
+        # Draw total line
+        self.set_y(print_level - 4)
+        self.set_x(168)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=22.5, txt="_______________", align="L")
+
+        self.set_y(print_level + 1)
+        self.set_x(168)
+        self.set_font("helvetica", "B", 8)
+        self.cell(w=22.5, txt=f"Rs. {total_amount:,.2f}", align="L")
+
+        # Helper function for currency formatting
+        def ind_curr(x):
+            return format_currency(x, "INR", locale="en_IN").replace("\xa0", " ")
+
+        bill = total_amount
+        print_level += 10
+
+        # Apply discount if any
+        discount = self.final_costs.get("discount", 0)
+        if discount > 0:
+            bill -= discount
+            disc_amount = ind_curr(round(discount, 2))
+
+            self.set_y(print_level)
+            self.set_x(60)
+            self.set_font("helvetica", "B", 8)
+            self.cell(w=22.5, txt="Discount", align="R")
+
+            self.set_y(print_level)
+            self.set_x(168)
+            self.set_font("helvetica", "B", 8)
+            self.cell(w=22.5, txt=f"(-) Rs. {disc_amount[1:]}", align="L")
+
+            print_level += 5
+
+        # CGST @9%
+        cgst_amount = bill * 9 / 100
+        cgst = ind_curr(cgst_amount)
+
+        self.set_y(print_level)
+        self.set_x(60)
+        self.set_font("helvetica", "B", 8)
+        self.cell(w=22.5, txt="CGST @9%", align="R")
+
+        self.set_y(print_level)
+        self.set_x(168)
+        self.set_font("helvetica", "B", 8)
+        self.cell(w=22.5, txt=f"Rs. {cgst[1:]}", align="L")
+
+        print_level += 5
+
+        # SGST @9%
+        self.set_y(print_level)
+        self.set_x(60)
+        self.set_font("helvetica", "B", 8)
+        self.cell(w=22.5, txt="SGST @9%", align="R")
+
+        self.set_y(print_level)
+        self.set_x(168)
+        self.set_font("helvetica", "B", 8)
+        self.cell(w=22.5, txt=f"Rs. {cgst[1:]}", align="L")
+
+        bill += (bill * 18 / 100)
+
+        # Installation charges if any
+        installation = self.final_costs.get("installation", 0)
+        if installation > 0:
+            inst_amount = ind_curr(round(installation, 2))
+
+            print_level += 5
+
+            self.set_y(print_level)
+            self.set_x(59)
+            self.set_font("helvetica", "B", 8)
+            self.cell(w=22.5, txt="Installation Charges", align="R")
+
+            self.set_y(print_level)
+            self.set_x(168)
+            self.set_font("helvetica", "B", 8)
+            self.cell(w=22.5, txt=f"Rs. {inst_amount[1:]}", align="L")
+
+            bill += installation
+
+        print_level += 7
+
+        # Round off calculation
+        from math import floor
+        round_off = bill - floor(bill)
+        round_off = round(round_off, 2)
+
+        if round_off != 0:
+            self.set_y(print_level)
+            self.set_x(60)
+            self.set_font("helvetica", "B", 8)
+            self.cell(w=22, txt="Round Off", align="R")
+
+            self.set_y(print_level)
+            self.set_x(168)
+            self.set_font("helvetica", "B", 8)
+            self.cell(w=22, txt=f"(-) Rs. {round_off}", align="L")
+
+            print_level += 8
+
+        bill = bill - round_off
+        bill = round(bill)
+        curr = ind_curr(bill)
+
+        self.set_y(print_level)
+        self.set_x(60)
+        self.set_font("helvetica", "B", 8)
+        self.cell(w=22, txt="Total", align="R")
+
+        self.set_y(print_level)
+        self.set_x(168)
+        self.set_font("helvetica", "B", 8)
+        self.cell(w=22, txt=f"Rs. {curr[1:]}", align="L")
+
+        print_level += 5
+
+        # Amount in words
+        try:
+            bill_words = num2words(bill, lang="en_IN").title()
+        except:
+            # Fallback if num2words is not available
+            bill_words = f"{bill:,.2f}"
+
+        self.set_y(print_level + 3)
+        self.set_x(16)
+        self.set_font("helvetica", "", 10)
+        self.cell(w=22, txt="Amount Chargeable (in words)", align="L")
+
+        self.set_y(print_level + 10)
+        self.set_x(16)
+        self.set_font("helvetica", "B", 10)
+        self.multi_cell(
+            w=160, h=5, txt=f"Indian Rupees {bill_words} Only", align="L"
+        )
+
+        self.set_y(print_level + 3)
+        self.set_x(168)
+        self.set_font("helvetica", "", 10)
+        self.cell(w=22, txt="E. & O.E", align="L")
+
+        self.draw_lines_info(print_level)
+        self.line(15, print_level, 195, print_level)
+        self.line(15, print_level + 23, 195, print_level + 23)
+
+    def taxable_amount_title(self):
+        """Create tax breakdown section headers exactly as legacy"""
+        tax_level = 97
+        self.set_y(tax_level + 2)
+        self.set_x(15)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=25, txt="HSN/SAC", align="C")
+
+        self.set_y(tax_level + 2)
+        self.set_x(40)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=30, txt="Taxable Value", align="C")
+
+        self.set_y(tax_level + 1)
+        self.set_x(70)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=50, txt="Central Tax", align="C")
+
+        self.set_y(tax_level + 8)
+        self.set_x(70)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=20, txt="Rate", align="C")
+
+        self.set_y(tax_level + 8)
+        self.set_x(90)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=30, txt="Amount", align="C")
+
+        self.set_y(tax_level + 1)
+        self.set_x(120)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=50, txt="State Tax", align="C")
+
+        self.set_y(tax_level + 8)
+        self.set_x(120)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=20, txt="Rate", align="C")
+
+        self.set_y(tax_level + 8)
+        self.set_x(140)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=30, txt="Amount", align="C")
+
+        self.set_y(tax_level)
+        self.set_x(170)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=25, txt="Total Tax", align="C")
+
+        self.set_y(tax_level + 5)
+        self.set_x(170)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=25, txt="Amount", align="C")
+
+    def print_tax_info(self, tax_level, x, tax_sum):
+        """Print tax information for each item exactly as legacy"""
+        def ind_curr(x):
+            return format_currency(x, "INR", locale="en_IN").replace("\xa0", " ")
+
+        self.set_y(tax_level + 2)
+        self.set_x(15)
+        self.set_font("helvetica", "", 8)
+        item_row = self.cart_items.iloc[x]
+        self.cell(w=25, txt=f"{item_row.get('hsn_sac', '')}", align="C")
+
+        # Calculate amount after discount
+        amount = float(str(item_row["Amount"]).replace("Rs.", "").replace(",", ""))
+        discount = self.final_costs.get("discount", 0)
+        
+        # Apply discount proportionally per item
+        if discount > 0:
+            discount_per_item = discount / len(self.cart_items)
+            amount = amount - discount_per_item
+
+        self.amt_sum += amount
+        amount_formatted = ind_curr(round(amount, 2))
+
+        self.set_y(tax_level + 2)
+        self.set_x(40)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=30, txt=f"Rs. {amount_formatted[1:]}", align="C")
+
+        self.set_y(tax_level + 2)
+        self.set_x(70)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=20, txt="9%", align="C")
+
+        # Calculate CGST
+        cgst_amount = amount * 9 / 100
+        cgst_formatted = ind_curr(cgst_amount)
+        self.set_y(tax_level + 2)
+        self.set_x(90)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=30, txt=f"Rs. {cgst_formatted[1:]}", align="C")
+
+        self.set_y(tax_level + 2)
+        self.set_x(120)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=20, txt="9%", align="C")
+
+        # Calculate SGST
+        sgst_amount = amount * 9 / 100
+        sgst_formatted = ind_curr(sgst_amount)
+        self.set_y(tax_level + 2)
+        self.set_x(140)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=30, txt=f"Rs. {sgst_formatted[1:]}", align="C")
+
+        # Total tax
+        total_tax = cgst_amount + sgst_amount
+        total_tax_formatted = ind_curr(total_tax)
+        self.set_y(tax_level + 2)
+        self.set_x(170)
+        self.set_font("helvetica", "", 8)
+        self.cell(w=25, txt=f"Rs. {total_tax_formatted[1:]}", align="C")
+
+        return tax_sum + cgst_amount
+
+    def taxable_amount(self):
+        """Create comprehensive tax breakdown section exactly as legacy"""
+        tax_level = 97
+        start_tax_level = tax_level - 2
+        tax_level += 15
+        tax_sum = 0
+        
+        self.taxable_amount_title()
+
+        # Print tax info for each item
+        for i in range(len(self.cart_items)):
+            if tax_level <= 230:
+                self.tax_print_count += 1
+                tax_sum = self.print_tax_info(tax_level, i, tax_sum)
+                tax_level += 7
+
+        # Draw tax section lines
+        self.draw_lines_tax(start_tax_level, tax_level - 7)
+        self.line(15, tax_level, 195, tax_level)
+
+        tax_level += 4
+
+        # Tax totals
+        def ind_curr(x):
+            return format_currency(x, "INR", locale="en_IN").replace("\xa0", " ")
+
+        amt_sum_formatted = ind_curr(round(self.amt_sum, 2))
+
+        self.set_y(tax_level + 2)
+        self.set_x(15)
+        self.set_font("helvetica", "B", 8)
+        self.cell(w=25, txt="Total  ", align="R")
+
+        self.set_y(tax_level + 2)
+        self.set_x(40)
+        self.set_font("helvetica", "B", 8)
+        self.cell(w=30, txt=f"Rs. {amt_sum_formatted[1:]}", align="C")
+
+        tax_amount_formatted = ind_curr(tax_sum)
+
+        self.set_y(tax_level + 2)
+        self.set_x(90)
+        self.set_font("helvetica", "B", 8)
+        self.cell(w=30, txt=f"Rs. {tax_amount_formatted[1:]}", align="C")
+
+        self.set_y(tax_level + 2)
+        self.set_x(140)
+        self.set_font("helvetica", "B", 8)
+        self.cell(w=30, txt=f"Rs. {tax_amount_formatted[1:]}", align="C")
+
+        final_tax = tax_sum * 2
+        final_tax = round(final_tax, 2)
+        final_tax_formatted = ind_curr(final_tax)
+
+        self.set_y(tax_level + 2)
+        self.set_x(170)
+        self.set_font("helvetica", "B", 8)
+        self.cell(w=25, txt=f"Rs. {final_tax_formatted[1:]}", align="C")
+
+        # Tax amount in words
+        try:
+            bill_words = num2words(final_tax, lang="en_IN").title()
+        except:
+            bill_words = f"{final_tax:,.2f}"
+
+        self.set_y(tax_level + 9)
+        self.set_x(16)
+        self.set_font("helvetica", "", 10)
+        self.cell(w=22, txt="Tax Amount (in words)", align="L")
+
+        self.set_y(tax_level + 16)
+        self.set_x(16)
+        self.set_font("helvetica", "B", 10)
+        self.multi_cell(
+            w=160, h=5, txt=f"Indian Rupees {bill_words} Only", align="L"
+        )
+
+        self.draw_lines_tax(start_tax_level, tax_level)
+        self.line(15, tax_level + 7, 195, tax_level + 7)
+        self.line(15, tax_level, 195, tax_level)
+        self.line(15, tax_level + 28, 195, tax_level + 28)
+
+        self.end_print_level = tax_level
 
     def end_print(self):
-        # This threshold might need adjustment
-        if self.get_y() > 220:
+        """Create end section with bank details exactly as legacy"""
+        # Check if we have enough space for bank details (approximately 60mm needed)
+        current_y = self.get_y()
+        page_height = self.h - self.b_margin  # Available page height
+        
+        if current_y + 60 > page_height:
+            # Not enough space, add new page
             self.add_page()
+            self.home_page()
+            end_print_level = 100
+        else:
+            # Enough space, continue on current page
+            end_print_level = current_y + 10
 
-        # Totals section
-        totals = [
-            ("Subtotal:", self.final_costs.get("subtotal", 0)),
-            ("Discount:", self.final_costs.get("discount", 0)),
-            (
-                f"CGST @ {self.final_costs.get('gst_percent', 0)/2}%:",
-                self.final_costs.get("gst_amount", 0) / 2,
-            ),
-            (
-                f"SGST @ {self.final_costs.get('gst_percent', 0)/2}%:",
-                self.final_costs.get("gst_amount", 0) / 2,
-            ),
-            ("Installation:", self.final_costs.get("installation", 0)),
-        ]
+        # Hardcoded values exactly as legacy
+        name = "Madhav Glass & Aluminium"
+        bank = "Punjab National Bank"
+        account = "0650050015525"
+        ifsc = "PUNB0065020"
 
-        self.set_font("helvetica", "", 10)
-        for label, value in totals:
-            self.set_x(130)
-            self.cell(40, 8, label, border=1, align="R")
-            self.cell(30, 8, f"{value:,.2f}", border=1, align="R")
-            self.ln()
+        # Draw bank details section
+        self.dashed_line(15, end_print_level, 195, end_print_level)
+        self.line(15, end_print_level + 28, 195, end_print_level + 28)
+        self.line(15, end_print_level + 55, 195, end_print_level + 55)
+        self.line(105, end_print_level + 28, 105, end_print_level + 55)
 
-        # Grand Total
-        self.set_x(130)
+        end_print_level += 2
+
+        self.set_y(end_print_level)
+        self.set_x(16)
         self.set_font("helvetica", "B", 10)
-        self.cell(40, 8, "Grand Total:", border=1, align="R")
-        self.cell(
-            30, 8, f"{self.final_costs.get('final_total', 0):,.2f}", border=1, align="R"
-        )
-        self.ln()
+        self.cell(w=22, txt="Bank Details", align="L")
 
+        end_print_level += 7
 
-# Cleanup old classes/functions if they are no longer needed
-# Make sure to remove the old invoiceDriverCode method.
+        self.set_y(end_print_level)
+        self.set_x(16)
+        self.set_font("helvetica", "", 10)
+        self.cell(w=22, txt="Recipient Name : ", align="L")
+
+        wi = self.get_string_width("Recipient Name : ")
+
+        self.set_y(end_print_level)
+        self.set_x(16 + wi)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=22, txt=f"{name}", align="L")
+
+        end_print_level += 5
+
+        self.set_y(end_print_level)
+        self.set_x(16)
+        self.set_font("helvetica", "", 10)
+        self.cell(w=22, txt="BANK NAME : ", align="L")
+
+        wi = self.get_string_width("BANK NAME : ")
+
+        self.set_y(end_print_level)
+        self.set_x(16 + wi)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=22, txt=f"{bank}", align="L")
+
+        end_print_level += 5
+
+        self.set_y(end_print_level)
+        self.set_x(16)
+        self.set_font("helvetica", "", 10)
+        self.cell(w=22, txt="Account No : ", align="L")
+
+        wi = self.get_string_width("Account No : ")
+
+        self.set_y(end_print_level)
+        self.set_x(16 + wi)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=22, txt=f"{account}", align="L")
+
+        end_print_level += 5
+
+        self.set_y(end_print_level)
+        self.set_x(16)
+        self.set_font("helvetica", "", 10)
+        self.cell(w=22, txt="IFSC CODE : ", align="L")
+
+        wi = self.get_string_width("IFSC CODE : ")
+
+        self.set_y(end_print_level)
+        self.set_x(16 + wi)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=22, txt=f"{ifsc}", align="L")
+
+        end_print_level += 5
+
+        self.set_y(end_print_level + 22)
+        self.set_x(16)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=22, txt="Madhav Glass & Aluminium (Seal and Signature)", align="L")
+
+        self.set_y(end_print_level + 22)
+        self.set_x(106)
+        self.set_font("helvetica", "B", 10)
+        self.cell(w=90, txt="Customers Signature  ", align="R")
+
+    def dashed_line(self, x1, y1, x2, y2):
+        """Draw dashed line"""
+        self.set_draw_color(0, 0, 0)
+        self.set_line_width(0.2)
+        dash_length = 2
+        gap_length = 1
+        current_x = x1
+        
+        while current_x < x2:
+            end_x = min(current_x + dash_length, x2)
+            self.line(current_x, y1, end_x, y2)
+            current_x = end_x + gap_length
+
+    def invoice_driver_code(self):
+        """Main driver code exactly as legacy"""
+        self.alias_nb_pages()
+        self.set_left_margin(15)
+        self.set_right_margin(15)
+        self.set_auto_page_break(auto=True, margin=15)
+        self.add_page()
+        self.set_y(15)
+
+        # Create the main invoice page
+        self.home_page()
+        self.info_section()
+        
+        # Add tax breakdown page as in legacy
+        self.add_page()
+        self.home_page()
+        self.taxable_amount()
+        self.end_print()
+
+        return True

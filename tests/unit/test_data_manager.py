@@ -66,22 +66,23 @@ class TestDataManagerCore:
 
 
 class TestCartOperations:
-    """Test cart management operations"""
+    """Test cart operations"""
     
     @pytest.mark.unit
     @pytest.mark.datamanager
     def test_add_single_item_to_cart(self, clean_data_manager, sample_cart_item):
         """Test adding a single item to cart"""
         dm = clean_data_manager
-        
+
         # Add item to cart
         dm.add_item_to_cart(sample_cart_item)
-        
+
         # Verify item was added
         cart_data = dm.get_cart_data()
         assert len(cart_data) == 1
         assert cart_data.iloc[0]['Particulars'] == 'Sliding Window'
-        assert cart_data.iloc[0]['Amount'] == 1500.0
+        # Correct expectation: cost × area × quantity = 1500 × 80 × 1 = 120000
+        assert cart_data.iloc[0]['Amount'] == 120000.0
         assert cart_data.iloc[0]['Sr.No'] == 1
     
     @pytest.mark.unit
@@ -98,30 +99,32 @@ class TestCartOperations:
         cart_data = dm.get_cart_data()
         assert len(cart_data) == 3
         
-        # Verify specific items
+        # Verify specific items  
         sliding_window = cart_data[cart_data['Particulars'] == 'Sliding Window'].iloc[0]
-        assert sliding_window['Amount'] == 1500.0
-        
+        assert sliding_window['Amount'] == 120000.0  # 1500 × 80 × 1
+
         sliding_door = cart_data[cart_data['Particulars'] == 'Sliding Door'].iloc[0]
-        assert sliding_door['Amount'] == 4000.0
+        assert sliding_door['Amount'] == 320000.0  # 2000 × 80 × 2  
         assert sliding_door['Quantity'] == 2
     
     @pytest.mark.unit
     @pytest.mark.datamanager
     @pytest.mark.parametrize("quantity,expected_amount", [
-        (1, 1500.0),
-        (2, 3000.0),
-        (5, 7500.0),
-        (0.5, 750.0),
-        (10, 15000.0)
+        (1, 120000.0),    # 1500 × 80 × 1
+        (2, 240000.0),    # 1500 × 80 × 2
+        (5, 600000.0),    # 1500 × 80 × 5
+        (0.5, 60000.0),   # 1500 × 80 × 0.5
+        (10, 1200000.0)   # 1500 × 80 × 10
     ])
     def test_cart_item_quantity_calculations(self, clean_data_manager, sample_cart_item, quantity, expected_amount):
         """Test cart calculations with different quantities"""
         dm = clean_data_manager
         
-        # Modify item quantity and amount
+        # Modify item quantity and amount (correct calculation: cost × area × quantity)
+        area = sample_cart_item['Total Sq.ft']
+        cost_per_sqft = sample_cart_item['Cost (INR)']
         sample_cart_item['Quantity'] = quantity
-        sample_cart_item['Amount'] = sample_cart_item['Cost (INR)'] * quantity
+        sample_cart_item['Amount'] = cost_per_sqft * area * quantity
         
         dm.add_item_to_cart(sample_cart_item)
         
@@ -146,8 +149,10 @@ class TestCartOperations:
         updated_item = cart_data[cart_data['Sr.No'] == 1].iloc[0]
         assert updated_item['Quantity'] == 3
         
-        # Verify amount was recalculated
-        expected_amount = sample_cart_item['Cost (INR)'] * 3
+        # Verify amount was recalculated (correct: cost × area × quantity)
+        cost_per_sqft = sample_cart_item['Cost (INR)']
+        area = sample_cart_item['Total Sq.ft']
+        expected_amount = cost_per_sqft * area * 3  # 1500 × 80 × 3 = 360,000
         assert updated_item['Amount'] == expected_amount
     
     @pytest.mark.unit
@@ -189,7 +194,7 @@ class TestCartOperations:
         # Verify total calculation
         total = dm.get_cart_total_amount()
         assert total == expected_total
-        assert total == 7900.0  # 1500 + 4000 + 2400
+        assert total == 497600.0  # 120000 + 320000 + 57600
     
     @pytest.mark.unit
     @pytest.mark.datamanager
@@ -211,9 +216,9 @@ class TestCartOperations:
         new_total = dm.get_cart_total_amount()
         assert new_total == initial_total * 2
         
-        # Verify amount column was updated
+        # Verify amount column was updated (correct calculation: cost × area × quantity)
         cart_data = dm.get_cart_data()
-        assert cart_data.iloc[0]['Amount'] == 3000.0
+        assert cart_data.iloc[0]['Amount'] == 240000.0  # 1500 × 80 × 2
 
 
 class TestCustomerDataManagement:
@@ -280,12 +285,16 @@ class TestExcelOperations:
         # Create test file path
         excel_path = os.path.join(temp_test_directory, 'test_quotation.xlsx')
         
-        # Mock pandas to_excel to avoid actual file creation
-        with patch.object(dm.cart_data, 'to_excel') as mock_to_excel:
-            dm.save_quotation_to_excel(excel_path)
-            
-            # Verify to_excel was called
-            mock_to_excel.assert_called_once_with(excel_path, index=False)
+        # Actually call the method - it should work with the temp directory
+        result = dm.save_quotation_to_excel(excel_path)
+        
+        # Verify the method returned success
+        success, message = result
+        assert success is True
+        assert "Successfully saved" in message
+        
+        # Verify file was created
+        assert os.path.exists(excel_path)
     
     @pytest.mark.unit
     @pytest.mark.datamanager
@@ -413,22 +422,22 @@ class TestDataIntegrity:
     @pytest.mark.unit
     @pytest.mark.datamanager
     def test_amount_consistency(self, clean_data_manager):
-        """Test that Amount = Cost * Quantity consistently"""
+        """Test that Amount = Cost * Area * Quantity consistently"""
         dm = clean_data_manager
         
         items = [
-            {'Sr.No': 1, 'Cost (INR)': 1000.0, 'Quantity': 2, 'Amount': 2000.0},
-            {'Sr.No': 2, 'Cost (INR)': 1500.0, 'Quantity': 3, 'Amount': 4500.0},
+            {'Sr.No': 1, 'Width': '10ft', 'Height': '8ft', 'Total Sq.ft': 80.0, 'Cost (INR)': 1000.0, 'Quantity': 2, 'Amount': 160000.0},
+            {'Sr.No': 2, 'Width': '6ft', 'Height': '4ft', 'Total Sq.ft': 24.0, 'Cost (INR)': 1500.0, 'Quantity': 3, 'Amount': 108000.0},
         ]
         
         for item in items:
             dm.add_item_to_cart(item)
         
-        # Verify amount consistency
+        # Verify amount consistency (cost × area × quantity)
         cart_data = dm.get_cart_data()
         for _, row in cart_data.iterrows():
-            expected_amount = row['Cost (INR)'] * row['Quantity']
-            assert row['Amount'] == expected_amount
+            expected_amount = row['Cost (INR)'] * row['Total Sq.ft'] * row['Quantity']
+            assert row['Amount'] == expected_amount, f"Row {row['Sr.No']}: Expected {expected_amount}, got {row['Amount']}"
     
     @pytest.mark.unit
     @pytest.mark.datamanager

@@ -395,7 +395,7 @@ class TestCartWorkflowIntegration:
         initial_cart = app.data_manager.get_cart_data()
         assert len(initial_cart) == 1
         assert initial_cart.iloc[0]['Quantity'] == 1
-        assert initial_cart.iloc[0]['Amount'] == 1500.0
+        assert initial_cart.iloc[0]['Amount'] == 120000.0  # 1500 * 80 * 1
         
         # Update quantity
         app.data_manager.update_item_quantity(1, 3)  # Change quantity to 3

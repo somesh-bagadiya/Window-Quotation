@@ -83,7 +83,7 @@ class TestCoverageAnalysis:
         
         # Generate report
         report_file = os.path.join(temp_test_directory, "coverage_analysis.json")
-        with open(report_file, 'w') as f:
+        with open(report_file, 'w', encoding='utf-8') as f:
             json.dump(coverage_data, f, indent=2)
         
         # Verify report generation
@@ -125,12 +125,12 @@ class TestCoverageAnalysis:
         
         # Generate detailed quality report
         report_file = os.path.join(temp_test_directory, "test_quality_metrics.json")
-        with open(report_file, 'w') as f:
+        with open(report_file, 'w', encoding='utf-8') as f:
             json.dump(test_metrics, f, indent=2)
         
         # Generate summary report
         summary_file = os.path.join(temp_test_directory, "test_summary.txt")
-        with open(summary_file, 'w') as f:
+        with open(summary_file, 'w', encoding='utf-8') as f:
             f.write("Window Quotation Application - Test Quality Report\n")
             f.write("=" * 55 + "\n\n")
             
@@ -213,9 +213,9 @@ class TestPerformanceTrendAnalysis:
                 'memory_efficient': True
             }
         
-        # Save baselines
+        # Generate performance baseline report
         baseline_file = os.path.join(temp_test_directory, "performance_baselines.json")
-        with open(baseline_file, 'w') as f:
+        with open(baseline_file, 'w', encoding='utf-8') as f:
             json.dump(performance_baselines, f, indent=2)
         
         # Verify baselines are reasonable
@@ -259,7 +259,7 @@ class TestPerformanceTrendAnalysis:
         
         # Generate trend report
         trend_file = os.path.join(temp_test_directory, "performance_trends.json")
-        with open(trend_file, 'w') as f:
+        with open(trend_file, 'w', encoding='utf-8') as f:
             json.dump({
                 'analysis_timestamp': datetime.now().isoformat(),
                 'historical_data': historical_data,
@@ -268,7 +268,7 @@ class TestPerformanceTrendAnalysis:
         
         # Generate visual trend summary
         summary_file = os.path.join(temp_test_directory, "trend_summary.txt")
-        with open(summary_file, 'w') as f:
+        with open(summary_file, 'w', encoding='utf-8') as f:
             f.write("Performance Trend Analysis\n")
             f.write("=" * 25 + "\n\n")
             
@@ -279,9 +279,9 @@ class TestPerformanceTrendAnalysis:
             f.write(f"Regressions Detected: {trend_analysis['regression_count']}\n\n")
             
             if trend_analysis['regression_count'] == 0:
-                f.write("✅ No performance regressions detected!\n")
+                f.write("[OK] No performance regressions detected!\n")
             else:
-                f.write("⚠️  Performance regressions need investigation.\n")
+                f.write("[WARNING] Performance regressions need investigation.\n")
         
         # Verify analysis
         assert os.path.exists(trend_file)
@@ -367,12 +367,12 @@ class TestFailureAnalysis:
         
         # Generate failure analysis report
         analysis_file = os.path.join(temp_test_directory, "failure_analysis.json")
-        with open(analysis_file, 'w') as f:
+        with open(analysis_file, 'w', encoding='utf-8') as f:
             json.dump(failure_patterns, f, indent=2)
         
         # Generate actionable insights report
         insights_file = os.path.join(temp_test_directory, "testing_insights.txt")
-        with open(insights_file, 'w') as f:
+        with open(insights_file, 'w', encoding='utf-8') as f:
             f.write("Test Failure Analysis & Insights\n")
             f.write("=" * 33 + "\n\n")
             
@@ -390,9 +390,9 @@ class TestFailureAnalysis:
             f.write("4. Establish consistent performance baselines\n")
             
             f.write("\nSuccess Indicators:\n")
-            f.write("✅ Overall failure rate < 5%\n")
-            f.write("✅ No single category > 50% of failures\n")
-            f.write("✅ Performance tests show consistent results\n")
+            f.write("[OK] Overall failure rate < 5%\n")
+            f.write("[OK] No single category > 50% of failures\n")
+            f.write("[OK] Performance tests show consistent results\n")
         
         # Verify analysis
         assert os.path.exists(analysis_file)
@@ -452,12 +452,12 @@ class TestFailureAnalysis:
         
         # Generate effectiveness report
         effectiveness_file = os.path.join(temp_test_directory, "test_effectiveness.json")
-        with open(effectiveness_file, 'w') as f:
+        with open(effectiveness_file, 'w', encoding='utf-8') as f:
             json.dump(effectiveness_metrics, f, indent=2)
         
         # Generate summary
         summary_file = os.path.join(temp_test_directory, "effectiveness_summary.txt")
-        with open(summary_file, 'w') as f:
+        with open(summary_file, 'w', encoding='utf-8') as f:
             f.write("Test Effectiveness Analysis\n")
             f.write("=" * 27 + "\n\n")
             
@@ -577,12 +577,12 @@ class TestDataInsights:
         
         # Generate insights report
         insights_file = os.path.join(temp_test_directory, "usage_insights.json")
-        with open(insights_file, 'w') as f:
+        with open(insights_file, 'w', encoding='utf-8') as f:
             json.dump(usage_patterns, f, indent=2)
         
         # Generate business insights
         business_file = os.path.join(temp_test_directory, "business_insights.txt")
-        with open(business_file, 'w') as f:
+        with open(business_file, 'w', encoding='utf-8') as f:
             f.write("Application Usage Insights\n")
             f.write("=" * 25 + "\n\n")
             
@@ -593,7 +593,7 @@ class TestDataInsights:
             f.write(f"\nTypical Project Characteristics:\n")
             f.write(f"  Average Items per Cart: {usage_patterns['cart_behavior']['average_items_per_cart']}\n")
             f.write(f"  Average Area: {usage_patterns['dimension_patterns']['average_area']} sq ft\n")
-            f.write(f"  Typical Order Value: ₹{usage_patterns['cost_patterns']['typical_order_value']:,.0f}\n")
+            f.write(f"  Typical Order Value: INR {usage_patterns['cost_patterns']['typical_order_value']:,.0f}\n")
             
             f.write(f"\nBusiness Insights:\n")
             f.write(f"  • Sliding windows dominate usage ({usage_patterns['product_popularity']['sliding_window']}%)\n")

@@ -65,7 +65,24 @@ class TestDataManager(unittest.TestCase):
     """Test DataManager functionality"""
     
     def setUp(self):
+        # Initialize tkinter root window before creating DataManager
+        try:
+            self.root = tk.Tk()
+            self.root.withdraw()  # Hide window during testing
+        except Exception as e:
+            # Skip tests if tkinter is not available or has issues
+            self.skipTest(f"tkinter not available: {e}")
+        
+        # Reset singleton for clean test
+        DataManager._instance = None
         self.dm = DataManager()
+        
+    def tearDown(self):
+        if hasattr(self, 'root') and self.root:
+            try:
+                self.root.destroy()
+            except:
+                pass
         
     def test_add_item_to_cart(self):
         """Test adding items to cart"""
@@ -74,9 +91,10 @@ class TestDataManager(unittest.TestCase):
             'Particulars': 'Test Window',
             'Width': '10ft',
             'Height': '8ft',
+            'Total Sq.ft': 80.0,
             'Cost (INR)': 1000.0,
             'Quantity': 1,
-            'Amount': 1000.0
+            'Amount': 80000.0  # 1000 × 80 × 1
         }
         
         self.dm.add_item_to_cart(test_item)
@@ -88,20 +106,20 @@ class TestDataManager(unittest.TestCase):
     def test_cart_total_calculation(self):
         """Test cart total calculation"""
         test_items = [
-            {'Sr.No': 1, 'Cost (INR)': 1000.0, 'Quantity': 2, 'Amount': 2000.0},
-            {'Sr.No': 2, 'Cost (INR)': 500.0, 'Quantity': 1, 'Amount': 500.0}
+            {'Sr.No': 1, 'Width': '10ft', 'Height': '8ft', 'Total Sq.ft': 80.0, 'Cost (INR)': 1000.0, 'Quantity': 2, 'Amount': 160000.0},
+            {'Sr.No': 2, 'Width': '5ft', 'Height': '4ft', 'Total Sq.ft': 20.0, 'Cost (INR)': 500.0, 'Quantity': 1, 'Amount': 10000.0}
         ]
         
         for item in test_items:
             self.dm.add_item_to_cart(item)
         
         total = self.dm.get_cart_total_amount()
-        self.assertEqual(total, 2500.0)
+        self.assertEqual(total, 170000.0)  # 160000 + 10000
         print("✅ Cart total calculation: PASSED")
     
     def test_update_item_quantity(self):
         """Test updating item quantity"""
-        test_item = {'Sr.No': 1, 'Cost (INR)': 100.0, 'Quantity': 1, 'Amount': 100.0}
+        test_item = {'Sr.No': 1, 'Width': '5ft', 'Height': '4ft', 'Total Sq.ft': 20.0, 'Cost (INR)': 100.0, 'Quantity': 1, 'Amount': 2000.0}
         self.dm.add_item_to_cart(test_item)
         
         self.dm.update_item_quantity(1, 5)
