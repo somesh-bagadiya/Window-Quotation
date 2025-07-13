@@ -363,19 +363,21 @@ class ResponsiveConfig:
     def get_cart_window_size(self):
         """Get responsive size for cart window"""
         # Cart window uses percentage of screen size
-        width = int(self.screen_width * 0.85)
-        height = int(self.screen_height * 0.85)
+        width = int(self.screen_width * 0.40)
+        height = int(self.screen_height * 0.70)
         
         # Ensure minimum usable size
-        min_width = 800
-        min_height = 600
+        # min_width = 800
+        # min_height = 600
         
-        return max(width, min_width), max(height, min_height)
+        # return max(width, min_width), max(height, min_height)
     
+        return width, height
+
     def get_invoice_window_size(self):
         """Get responsive size for invoice window"""
-        base_width = 1100
-        base_height = 900
+        base_width = 400
+        base_height = 800
         
         width = self.get_window_width(base_width)
         height = self.get_window_height(base_height)
@@ -384,7 +386,7 @@ class ResponsiveConfig:
     
     # ============= UTILITY METHODS =============
     
-    def center_window(self, window, width=None, height=None, base_width=None, base_height=None):
+    def center_window(self, window, window_name=None, width=None, height=None, base_width=None, base_height=None):
         """
         Center any window on screen with unified positioning
         
@@ -433,19 +435,56 @@ class ResponsiveConfig:
         
         # Get screen dimensions
         screen_width = window.winfo_screenwidth()
-        screen_height = window.winfo_screenheight() - 300
+        screen_height = window.winfo_screenheight()
+        
+        # DEBUG: Compare screen dimensions for cart windows
+        if window_name == 'cart':
+            print(f"=== CART WINDOW DEBUG ===")
+            print(f"ResponsiveConfig.screen_width: {self.screen_width}")
+            print(f"window.winfo_screenwidth(): {screen_width}")
+            print(f"ResponsiveConfig.screen_height: {self.screen_height}")
+            print(f"window.winfo_screenheight(): {screen_height}")
+            print(f"Window dimensions: {window_width}x{window_height}")
+            print(f"Cart size calculation used: {self.screen_width} * 0.40 = {int(self.screen_width * 0.40)}")
+            print(f"Cart size calculation used: {self.screen_height} * 0.70 = {int(self.screen_height * 0.70)}")
         
         # Calculate center position
         x = (screen_width - window_width) // 2
         y = (screen_height - window_height) // 2
         
-        # Ensure window doesn't go off-screen
-        x = max(0, min(x, screen_width - window_width))
-        y = max(0, min(y, screen_height - window_height))
+        # DEBUG: Show centering calculation for cart
+        if window_name == 'cart':
+            print(f"Centering calculation:")
+            print(f"x = ({screen_width} - {window_width}) // 2 = {x}")
+            print(f"y = ({screen_height} - {window_height}) // 2 = {y}")
+        
+        # Move all windows 100 pixels higher (towards the top) for better positioning
+        y = y - 150
+        
+        if window_name == 'cart':
+            # TEST: print parent root location for debugging
+            try:
+                root_x = window.master.winfo_rootx()
+                root_y = window.master.winfo_rooty()
+                print(f"Root window origin: ({root_x}, {root_y})")
+            except Exception as e:
+                print(f"Could not get root coordinates: {e}")
+            # Revert to normal x centering calculation (no forcing)
+            # Remove any manual shift
+            # x = screen_width - window_width - 50  # previous test
+            print(f"After adjustments: x = {x}, y = {y}")
+            print(f"Expected window center: {x + window_width//2}")
+            print(f"Screen center: {screen_width//2}")
+            print(f"Distance from screen center: {(x + window_width//2) - screen_width//2}")
+            print(f"========================")
+        else:
+            # Ensure window doesn't go off-screen
+            x = max(0, min(x, screen_width - window_width))
+            y = max(0, min(y, screen_height - window_height))
         
         # Set window geometry and position
         window.geometry(f"{window_width}x{window_height}+{x}+{y}")
-        
+        print(f"Window geometry: {window_width}x{window_height}+{x}+{y}")
         return window_width, window_height, x, y
     
     def center_main_window(self, window):
@@ -459,10 +498,43 @@ class ResponsiveConfig:
         """Center product configuration windows with consistent sizing"""
         return self.center_window(window, base_width=1000, base_height=900)
     
+    def _center_over_parent(self, window, parent_window, width, height, y_offset=-150):
+        """Center a child window over its parent window"""
+        # Ensure parent dimensions are updated
+        parent_window.update_idletasks()
+        pw = parent_window.winfo_width()
+        ph = parent_window.winfo_height()
+        px = parent_window.winfo_rootx()
+        py = parent_window.winfo_rooty()
+
+        print(pw,ph,px,py)
+        # Fallback if parent not yet sized
+        if pw == 1 or ph == 1:
+            pw = parent_window.winfo_screenwidth()
+            ph = parent_window.winfo_screenheight()
+            px = 0
+            py = 0
+
+        # Calculate coordinates
+        x = px + (pw - width) // 2
+        y = py + (ph - height) // 2 + y_offset
+
+        # Ensure on-screen
+        screen_width = window.winfo_screenwidth()
+        screen_height = window.winfo_screenheight()
+        x = max(0, min(x, screen_width - width))
+        y = max(0, min(y, screen_height - height))
+
+
+        window.geometry(f"{width}x{height}+{x}+{y}")
+        return width, height, x, y
+
     def center_cart_window(self, window):
-        """Center cart window with percentage-based sizing"""
+        """Center cart window relative to parent (main) window"""
         width, height = self.get_cart_window_size()
-        return self.center_window(window, width=width, height=height)
+        parent_window = window.master if window.master is not None else window
+        # Prefer centering over parent instead of full screen for better visual alignment
+        return self._center_over_parent(window, parent_window, width, height)
     
     def center_invoice_window(self, window):
         """Center invoice window with consistent sizing"""

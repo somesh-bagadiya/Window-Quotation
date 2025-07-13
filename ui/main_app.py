@@ -203,7 +203,7 @@ class MainApplication:
         cartButt = tk.Button(
             self.cart_container,
             text="🛒 Cart",  # Use emoji instead of icon for simplicity
-            command=self.open_cart_view,
+                command=self.open_cart_view,
             width=15,  # Fixed width that should be visible
             height=2,  # Fixed height that should be visible
             font=responsive.get_font_tuple("medium", "bold"),

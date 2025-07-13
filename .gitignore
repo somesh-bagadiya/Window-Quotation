@@ -30,7 +30,17 @@ MANIFEST
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
-*.spec
+# Keep main spec file but ignore temporary ones
+*_temp.spec
+*_backup.spec
+
+# Installer creation and output
+installer_output/
+setup_output/
+*_Setup.exe
+*_Installer.exe
+*.iss.bak
+inno_setup_output/
 
 # Installer logs
 pip-log.txt
@@ -221,3 +231,12 @@ temp_*
 # Cache directories
 cache/
 .cache/ 
+
+# Distribution and deployment files
+*.msi
+*.dmg
+*.pkg
+installer/
+release/
+releases/
+deployment/ 

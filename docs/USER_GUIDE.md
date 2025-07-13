@@ -24,21 +24,29 @@ This comprehensive user guide will help you effectively use the MGA Window Quota
 ## **🚀 Getting Started**
 
 ### **System Requirements**
-- Windows 10/11, macOS, or Linux
+- Windows 10/11, macOS 10.15+, or Linux
 - Python 3.7 or higher
 - 1 GB RAM (2 GB recommended)
 - 100 MB free disk space
+- **Display**: Any screen resolution (responsive design automatically adapts)
 
 ### **Launching the Application**
 1. Double-click the application icon or run `python __main__.py`
 2. The main window will open with the MGA logo and interface
-3. You're ready to create your first quotation!
+3. **Responsive Design**: The application automatically adapts to your screen size and resolution
+4. You're ready to create your first quotation!
 
 ### **First Look at the Interface**
-The main window contains three sections:
+The main window contains three sections with **professional styling**:
 - **Customer Details** (left top): Enter customer information
-- **Window Details** (left bottom): Select product type and dimensions
+- **Window Details** (left bottom): Select product type and dimensions  
 - **Company Logo** (right): MGA branding and navigation
+
+### **Responsive Design Features**
+- **Automatic Scaling**: Interface automatically adjusts to your screen size and DPI
+- **Cross-Platform**: Native appearance on Windows, macOS, and Linux
+- **Professional Styling**: Modern blue-gray color scheme with consistent fonts
+- **Optimal Sizing**: All elements sized appropriately for your display
 
 ---
 
@@ -63,13 +71,16 @@ The application supports 14 different window and door types:
 14. **Exhaust Fan Window** - Ventilation windows
 
 ### **Key Features**
-- ✅ Professional quotation generation
-- ✅ Detailed product configuration
-- ✅ Automatic cost calculations
-- ✅ Shopping cart functionality
-- ✅ PDF generation with product images
-- ✅ Save and load quotations
-- ✅ Customer database management
+- ✅ **Professional quotation generation** - High-quality PDFs with product images
+- ✅ **Responsive design system** - Automatically adapts to different screen sizes
+- ✅ **Professional styling** - Modern blue-gray theme with consistent appearance
+- ✅ **Cross-platform compatibility** - Native look and feel on Windows, macOS, and Linux
+- ✅ **Detailed product configuration** - Comprehensive specifications for all products
+- ✅ **Automatic cost calculations** - Intelligent pricing with real-time updates
+- ✅ **Shopping cart functionality** - Multi-item quotations with quantity management
+- ✅ **PDF generation with product images** - Professional quotations with visual product representations
+- ✅ **Save and load quotations** - Customer data persistence and quotation management
+- ✅ **Customer database management** - Integrated customer information storage
 
 ---
 

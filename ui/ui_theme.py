@@ -131,7 +131,7 @@ class UITheme:
             return responsive.get_entry_width("standard")
         else:
             return 25
-    
+
     @classmethod
     def get_entry_width_large(cls):
         """Get responsive large entry width"""
@@ -155,7 +155,7 @@ class UITheme:
     ENTRY_WIDTH_LARGE = property(lambda cls: cls.get_entry_width_large())
     
     # ============= WIDGET STYLES =============
-    
+
     @classmethod
     def configure_ttk_styles(cls, root):
         """Configure ttk styles with responsive fonts"""
@@ -168,19 +168,19 @@ class UITheme:
         # Header styles
         style.configure("Header.TLabel", 
                        font=header_font,
-                       foreground=cls.TEXT_DARK,
+            foreground=cls.TEXT_DARK,
                        background=cls.BACKGROUND_WHITE)
         
         # Professional styles
         style.configure("Professional.TLabel",
                        font=body_font,
-                       foreground=cls.TEXT_DARK,
+            foreground=cls.TEXT_DARK,
                        background=cls.BACKGROUND_WHITE)
         
         style.configure("Professional.TCombobox",
                        font=body_font,
-                       fieldbackground=cls.BACKGROUND_WHITE,
-                       borderwidth=1,
+            fieldbackground=cls.BACKGROUND_WHITE,
+            borderwidth=1,
                        relief="solid")
     
     @classmethod

@@ -718,7 +718,7 @@ class BaseProductFrame(tk.Frame):
         self._after_id = widget.after(1000, lambda: self.search(widget, selOpt))
 
     def calculate_cost(self):
-        """Enhanced cost calculation with automatic rate lookup support"""
+        """Calculate cost with manual entry only"""
         try:
             width = float(self.global_state.Width.get()) if self.global_state.Width.get() else 0
             height = float(self.global_state.Height.get()) if self.global_state.Height.get() else 0
@@ -731,89 +731,33 @@ class BaseProductFrame(tk.Frame):
             # Update total square feet
             self.global_state.totSqftEntVar.set(f"{total_sqft:.2f}")
             
-            # Check if this product type supports automatic rate lookup
-            product_type = self.parent.title()
-            cost_per_sqft = self.get_automatic_rate(product_type, total_sqft)
+            # Manual cost entry required
+            cost_per_sqft_str = self.global_state.costEntVar.get()
             
-            if cost_per_sqft is not None:
-                # Automatic rate found - update cost field and calculate
-                self.global_state.costEntVar.set(str(cost_per_sqft))
-                total_cost = total_sqft * cost_per_sqft
+            if not cost_per_sqft_str:
+                messagebox.showerror(
+                    "Invalid", "Please fill in the cost field.", parent=self.parent
+                )
+                return False
+                
+            if not self.global_state.validate_digits(cost_per_sqft_str):
+                messagebox.showerror(
+                    "Invalid", "Please enter numbers in the cost field.", parent=self.parent
+                )
+                return False
+                
+            cost_per_sqft = float(cost_per_sqft_str)
+            total_cost = total_sqft * cost_per_sqft
 
-                # Format currency exactly as legacy
-                indCurr = lambda x: format_currency(x, "INR", locale="en_IN").replace("\xa0", " ")
-                self.global_state.cstAmtInr.set(indCurr(total_cost))
-                
-                return True
-            else:
-                # Manual cost entry required
-                cost_per_sqft_str = self.global_state.costEntVar.get()
-                
-                if not cost_per_sqft_str:
-                    messagebox.showerror(
-                        "Invalid", "Please fill in the cost field.", parent=self.parent
-                    )
-                    return False
-                    
-                if not self.global_state.validate_digits(cost_per_sqft_str):
-                    messagebox.showerror(
-                        "Invalid", "Please enter numbers in the cost field.", parent=self.parent
-                    )
-                    return False
-                    
-                cost_per_sqft = float(cost_per_sqft_str)
-                total_cost = total_sqft * cost_per_sqft
-
-                # Format currency exactly as legacy
-                indCurr = lambda x: format_currency(x, "INR", locale="en_IN").replace("\xa0", " ")
-                self.global_state.cstAmtInr.set(indCurr(total_cost))
-                
-                return True
+            # Format currency exactly as legacy
+            indCurr = lambda x: format_currency(x, "INR", locale="en_IN").replace("\xa0", " ")
+            self.global_state.cstAmtInr.set(indCurr(total_cost))
+            
+            return True
             
         except (ValueError, TypeError) as e:
             messagebox.showerror("Invalid Input", "Please enter valid numbers for dimensions and cost.", parent=self.parent)
             return False
-
-    def get_automatic_rate(self, product_type, total_sqft):
-        """
-        Get automatic rate for products that have predefined rates in the pricing data file
-        Returns rate or None if manual entry is required
-        """
-        try:
-            # Try to load pricing data
-            import pandas as pd
-            import os
-            
-            pricing_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "Data", "pricing_data.xlsx")
-            
-            if os.path.exists(pricing_file):
-                pricing_df = pd.read_excel(pricing_file)
-                
-                # Find matching product type
-                matching_row = pricing_df[pricing_df['Product_Type'] == product_type]
-                
-                if not matching_row.empty:
-                    rate = matching_row.iloc[0]['Rate_Per_SqFt']
-                    min_area = matching_row.iloc[0]['Min_Area']
-                    max_area = matching_row.iloc[0]['Max_Area']
-                    
-                    # Check if area is within valid range
-                    if min_area <= total_sqft <= max_area:
-                        print(f"Auto-rate found for {product_type}: ₹{rate}/sq.ft for {total_sqft} sq.ft")
-                        return rate
-                    else:
-                        print(f"Area {total_sqft} outside valid range ({min_area}-{max_area}) for {product_type}")
-                        return None
-                else:
-                    print(f"No rate found for product type: {product_type}")
-                    return None
-            else:
-                print(f"Pricing file not found: {pricing_file}")
-                return None
-                
-        except Exception as e:
-            print(f"Error loading pricing data: {e}")
-            return None
 
     def add_to_cart(self):
         """Add item to cart using legacy data structure"""
@@ -879,7 +823,7 @@ class BaseProductFrame(tk.Frame):
     def _on_frame_configure(self, event):
         """Update scroll region when frame content changes"""
         self.canvas.configure(scrollregion=self.canvas.bbox("all"))
-        
+
     def add_next_button(self):
         """Add Next button in fixed position below specifications section with responsive sizing"""
         # Get responsive configuration
